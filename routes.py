@@ -46,24 +46,27 @@ def register_routes(app):
         db.session.commit()
         return jsonify({'mensagem': 'Produto deletado'})
 
-    @app.route('/vender_produto/<int:produto_id>', methods=['POST'])
-    def vender_produto(produto_id):
+    @app.route('/vender_produto', methods=['POST'])
+    def vender_produto():
         data = request.json
+        produto_id = data.get('produto_id')  # Obtém o ID do produto do corpo da requisição
         quantidade_vendida = data.get('quantidade', 1)  # Quantidade padrão 1
-
+    
+        if not produto_id:
+            return jsonify({'erro': 'É necessário fornecer o produto_id'}), 400
+    
         produto = Produto.query.get(produto_id)
-
+    
         if produto and produto.quantidade >= quantidade_vendida:
             produto.quantidade -= quantidade_vendida  # Atualiza estoque
-            preco_total = produto.preco * quantidade_vendida # Calcula o preço total de venda
-
+            preco_total = produto.preco * quantidade_vendida  # Calcula o preço total de venda
+    
             brasil_tz = pytz.timezone('America/Sao_Paulo')
             data_local = datetime.now(brasil_tz)  # Data atual com fuso horário de São Paulo
             
             nova_venda = Venda(produto_id=produto_id, quantidade=quantidade_vendida, preco_total=preco_total, data=data_local)  # Registra a venda com a data com o fuso horário local
-            db.session.add(nova_venda)
             db.session.commit()
-
+    
             return jsonify({'message': 'Venda registrada com sucesso'}), 200
         else:
             return jsonify({'message': 'Produto não encontrado ou estoque insuficiente'}), 400
