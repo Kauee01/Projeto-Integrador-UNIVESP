@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Registrar Venda{% endblock %}
+
+{% block content %}
+<style>
+    h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px #8a2be2;
+    }
+
+    form {
+        background-color: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 600px;
+        margin: 0 auto;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+
+    select, input {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 5px;
+        border: none;
+    }
+
+    button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    .mensagem {
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 0.95rem;
+    }
+</style>
+
+<h2>Registrar Nova Venda</h2>
+
+<form method="POST">
+    <!-- Tipo de Pagamento -->
+    <label for="tipo_pagamento">Tipo de Pagamento</label>
+    <select name="tipo_pagamento_id" id="tipo_pagamento" required>
+        <option value="">Selecione...</option>
+        <!-- Tipos de pagamento serão carregados dinamicamente via JavaScript -->
+    </select>
+
+    <!-- Itens da Venda (Produtos Disponíveis) -->
+    <label for="itens">Itens da Venda (Selecione)</label>
+    {% if produtos_estoque %}
+        {% for produto in produtos_estoque %}
+            <div style="margin-bottom: 1rem;">
+                <label>{{ produto.nome }} - R$ {{ produto.preco }}</label>
+                <input type="number" name="quantidade_{{ produto.id }}" placeholder="Quantidade" min="0" value="0">
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Não há produtos cadastrados no momento.</p>
+    {% endif %}
+
+    <button type="submit">Registrar Venda</button>
+
+    {% if mensagem %}
+        <p class="mensagem" style="color: lightgreen;">{{ mensagem }}</p>
+    {% endif %}
+</form>
+
+<script>
+    // Função para carregar os tipos de pagamento da API
+    async function carregarTiposPagamento() {
+        try {
+            const response = await fetch('/tipopagamento');
+            const tipos = await response.json();
+
+            const select = document.getElementById('tipo_pagamento');
+            tipos.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo.id; // Usando o id como valor
+                option.textContent = tipo.nome; // Exibindo o nome do tipo de pagamento
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Erro ao carregar tipos de pagamento:', error);
+        }
+    }
+
+    // Carregar os tipos de pagamento assim que a página for carregada
+    window.onload = carregarTiposPagamento;
+</script>
+
+{% endblock %}
+</html>

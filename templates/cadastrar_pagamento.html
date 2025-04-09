@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Tipo de Pagamento{% endblock %}
+
+{% block content %}
+<style>
+    h2 {
+        text-align: center;
+        margin-bottom: 1rem;
+        text-shadow: 0 0 10px #8a2be2;
+    }
+
+    form {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 10px;
+        max-width: 400px;
+        margin: 0 auto 2rem;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    input, button {
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+        padding: 0.6rem;
+        border: none;
+        border-radius: 5px;
+    }
+
+    button {
+        background-color: #4caf50;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    .mensagem {
+        text-align: center;
+        margin-top: 1rem;
+        color: lightgreen;
+    }
+
+    .erro {
+        text-align: center;
+        margin-top: 1rem;
+        color: #ff5c5c;
+    }
+
+    table {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        border-collapse: collapse;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 0.75rem;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    th {
+        background-color: rgba(138, 43, 226, 0.2);
+    }
+
+    .acoes {
+        display: flex;
+        justify-content: center;
+    }
+
+    .botao.excluir {
+        background-color: #e53935;
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+    }
+
+    .botao.excluir:hover {
+        background-color: #c62828;
+    }
+</style>
+
+<h2>Cadastrar Tipo de Pagamento</h2>
+
+<form method="POST">
+    <input type="text" name="nome" placeholder="Nome do tipo de pagamento" required>
+    <button type="submit">Cadastrar</button>
+
+    {% if sucesso %}
+        <p class="mensagem">{{ sucesso }}</p>
+    {% elif erro %}
+        <p class="erro">{{ erro }}</p>
+    {% endif %}
+</form>
+
+<h2>Tipos de Pagamento Cadastrados</h2>
+
+{% if tipos_pagamento %}
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tipo in tipos_pagamento %}
+        <tr>
+            <td>{{ tipo.id }}</td>
+            <td>{{ tipo.nome }}</td>
+            <td class="acoes">
+                <form method="POST" action="{{ url_for('excluir_tipo_pagamento', tipo_id=tipo.id) }}" class="form-excluir">
+                    <button type="submit" class="botao excluir" onclick="return confirm('Deseja realmente excluir este tipo de pagamento?')">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p style="text-align: center;">Nenhum tipo de pagamento cadastrado.</p>
+{% endif %}
+{% endblock %}
+</html>

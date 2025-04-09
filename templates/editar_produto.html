@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Editar Produto{% endblock %}
+
+{% block content %}
+<style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+    form {
+        background: #2e2e4d;
+        padding: 2rem;
+        border-radius: 10px;
+        width: 300px;
+        margin: 2rem auto;
+        color: white;
+    }
+
+    input, select, button {
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 5px;
+    }
+
+    button {
+        background-color: #4caf50;
+        color: white;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    a {
+        text-align: center;
+        display: block;
+        color: lightblue;
+        margin-top: 0.5rem;
+    }
+</style>
+
+<form method="POST">
+    <h2>Editar Produto</h2>
+
+    <label>Tipo do Produto:</label>
+    <select name="tipo_produto_id" required>
+        {% for tipo in tipos %}
+            <option value="{{ tipo.id }}" {% if tipo.id == produto.tipo_produto_id %}selected{% endif %}>
+                {{ tipo.nome }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Quantidade:</label>
+    <input type="number" name="quantidade" value="{{ produto.quantidade }}" required>
+
+    <button type="submit">Salvar</button>
+    <a href="/painel">Cancelar</a>
+</form>
+{% endblock %}
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Lista de Tipos de Pagamento{% endblock %}
+
+{% block content %}
+<style>
+    h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px #8a2be2;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 80%;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 1rem;
+        text-align: center;
+    }
+
+    th {
+        background-color: rgba(138, 43, 226, 0.3);
+    }
+
+    tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    tr:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+
+<h2>Tipos de Pagamento Cadastrados</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tipo in tipos_pagamento %}
+        <tr>
+            <td>{{ tipo.id }}</td>
+            <td>{{ tipo.nome }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+</html>

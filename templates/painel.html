@@ -1,76 +1,106 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Painel de Estoque</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Orbitron', sans-serif;
-            background: linear-gradient(120deg, #0f0c29, #302b63, #24243e);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-        }
+{% extends 'base.html' %}
 
-        h1 {
-            margin-bottom: 2rem;
-            text-shadow: 0 0 10px #8a2be2;
-        }
+{% block title %}Painel de Estoque{% endblock %}
 
-        table {
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-            width: 80%;
-        }
+{% block content %}
+<style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        th, td {
-            padding: 1rem;
-            text-align: center;
-        }
+    body {
+        font-family: 'Orbitron', sans-serif;
+        background: linear-gradient(120deg, #0f0c29, #302b63, #24243e);
+        color: #fff;
+        min-height: 100vh;
+        padding: 2rem;
+    }
 
-        th {
-            background-color: rgba(138, 43, 226, 0.4);
-        }
+    h1 {
+        margin-bottom: 2rem;
+        text-align: center;
+        text-shadow: 0 0 10px #8a2be2;
+    }
 
-        tr:nth-child(even) {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
+    table {
+        border-collapse: collapse;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        width: 80%;
+        margin: 0 auto;
+    }
 
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
+    th, td {
+        padding: 1rem;
+        text-align: center;
+    }
 
-        td {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    </style>
-</head>
-<body>
-    <h1>Painel de Estoque</h1>
-    <table>
-        <tr>
-            <th>Tipo</th>
-            <th>Preço</th>
-            <th>Quantidade em Estoque</th>
-            <th>Vendidos</th>
-        </tr>
-        {% for produto in produtos %}
-        <tr>
-            <td>{{ produto.tipo }}</td>
-            <td>R$ {{ produto.preco }}</td>
-            <td>{{ produto.estoque }}</td>
-            <td>{{ produto.vendido }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-</body>
+    th {
+        background-color: rgba(138, 43, 226, 0.4);
+    }
+
+    tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    tr:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    a.editar {
+        color: lightblue;
+        text-decoration: none;
+        font-size: 0.9rem;
+        margin-right: 10px;
+    }
+
+    form.excluir {
+        display: inline;
+    }
+
+    form.excluir button {
+        color: red;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+</style>
+
+<h1>Painel de Estoque</h1>
+<table>
+    <tr>
+        <th>Tipo</th>
+        <th>Preço</th>
+        <th>Quantidade em Estoque</th>
+        <th>Vendidos</th>
+        <th>Ações</th>
+    </tr>
+    {% for produto in produtos %}
+    <tr>
+        <td>{{ produto.tipo }}</td>
+        <td>R$ {{ produto.preco }}</td>
+        <td>{{ produto.estoque }}</td>
+        <td>{{ produto.vendido }}</td>
+        <td>
+            <a href="/editar-produto/{{ produto.id }}" class="editar">Editar</a>
+            <form action="/excluir-produto/{{ produto.id }}" method="POST" class="excluir" onsubmit="return confirm('Tem certeza que deseja excluir?')">
+                <button type="submit">Excluir</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
 </html>

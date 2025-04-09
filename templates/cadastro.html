@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Cadastrar Usuário{% endblock %}
+
+{% block content %}
+<style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+    form {
+        background-color: #333;
+        padding: 2rem;
+        border-radius: 10px;
+        width: 300px;
+        margin: 2rem auto;
+        color: white;
+    }
+
+    label, input, button {
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 5px;
+    }
+
+    button {
+        background-color: #4caf50;
+        color: white;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    p {
+        text-align: center;
+    }
+</style>
+
+<form method="POST">
+    <h2>Criar Conta</h2>
+
+    <label>Usuário</label>
+    <input type="text" name="username" required>
+
+    <label>Senha</label>
+    <input type="password" name="senha" required>
+
+    <button type="submit">Cadastrar</button>
+
+    {% if erro %}
+        <p style="color: red;">{{ erro }}</p>
+    {% elif sucesso %}
+        <p style="color: lightgreen;">{{ sucesso }}</p>
+    {% endif %}
+
+    <p>
+        <a href="/" style="color: lightblue;">Voltar ao login</a>
+    </p>
+</form>
+{% endblock %}
+</html>

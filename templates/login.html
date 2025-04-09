@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+    .login-container {
+        font-family: sans-serif;
+        background-color: #202040;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    form {
+        background: #2e2e4d;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 0 10px #000;
+        width: 300px;
+    }
+
+    input, button {
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+    }
+
+    .erro {
+        color: red;
+        font-size: 0.9rem;
+    }
+
+    .link-criar {
+        text-align: center;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="login-container">
+    <form action="/auth" method="POST">
+        <h2>Login</h2>
+        <input type="text" name="username" placeholder="Usuário" required />
+        <input type="password" name="senha" placeholder="Senha" required />
+        <button type="submit">Entrar</button>
+
+        <div class="link-criar">
+            <a href="/cadastrar-usuario" style="color: lightblue;">Criar uma conta</a>
+        </div>
+
+        {% if erro %}
+        <p class="erro">{{ erro }}</p>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}
+</html>

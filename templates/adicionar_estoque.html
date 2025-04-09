@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Adicionar ao Estoque{% endblock %}
+
+{% block content %}
+<h1>Adicionar ao Estoque</h1>
+
+{% if erro %}
+<p style="color: red;">{{ erro }}</p>
+{% elif sucesso %}
+<p style="color: lightgreen;">{{ sucesso }}</p>
+{% endif %}
+
+<form method="POST">
+    <label for="produto_id">Produto:</label>
+    <select name="produto_id" required>
+        <option value="">Selecione um produto</option>
+        {% for produto in produtos %}
+        <option value="{{ produto.id }}">{{ produto.nome }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="quantidade">Quantidade a adicionar:</label>
+    <input type="number" name="quantidade" min="1" required>
+
+    <button type="submit">Adicionar ao Estoque</button>
+</form>
+{% endblock %}
+</html>

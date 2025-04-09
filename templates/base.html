@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Sistema{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(120deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: #8a2be2;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+        }
+
+        nav a {
+            margin-left: 1rem;
+            text-decoration: none;
+            color: #fff;
+            background-color: #444;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            position: relative;
+        }
+
+        nav a:hover {
+            background-color: #666;
+        }
+
+        /* Submenu */
+        .menu-vendas:hover .submenu {
+            display: block;
+        }
+
+        .menu-vendas {
+            position: relative;
+        }
+
+        .submenu {
+            display: none;
+            position: absolute;
+            top: 110%;
+            left: 0;
+            background-color: #333;
+            border-radius: 8px;
+            padding: 0.5rem 0;
+            min-width: 180px;
+            z-index: 1000;
+        }
+
+        .submenu a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: white;
+            background: none;
+            border: none;
+            text-align: left;
+            text-decoration: none;
+        }
+
+        .submenu a:hover {
+            background-color: #555;
+        }
+
+        table {
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        th {
+            background-color: rgba(138, 43, 226, 0.4);
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        a.editar {
+            color: lightblue;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+
+        form.excluir {
+            display: inline;
+        }
+
+        form.excluir button {
+            color: red;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Controle</h1>
+        <nav>
+            <a href="/home">🏠 Home</a>
+            <a href="/painel">📦 Estoque</a>
+            <a href="/cadastrar-produto">➕ Cadastrar Novo Produto</a>
+            <a href="/adicionar-estoque">📥 Adicionar ao Estoque</a>
+            <div class="menu-vendas">
+                <a href="#">🧾 Vendas ▾</a>
+                <div class="submenu">
+                    <a href="/registrar-venda">Registrar Venda</a>
+                    <a href="/cadastrar-pagamento">Tipo de Pagamento</a>
+                    <a href="/listar-vendas">Lista de Vendas</a>
+                </div>
+            </div>            
+            <a href="/logout">🚪 Sair</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
