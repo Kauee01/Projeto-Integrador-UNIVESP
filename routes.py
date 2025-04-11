@@ -8,29 +8,32 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 def register_routes(app):
 
-    # ---------- EXCLUIR PRODUTO ----------
     @app.route('/excluir-produto/<int:produto_id>', methods=['POST'])
     def excluir_produto(produto_id):
         if 'usuario' not in session:
             return redirect(url_for('login_view'))
 
         produto = Produto.query.get_or_404(produto_id)
+        if ItemVenda.query.filter_by(produto_id=produto.id).first():
+            return "Este produto está relacionado a vendas e não pode ser excluído.", 400
+
         db.session.delete(produto)
         db.session.commit()
         return redirect(url_for('painel'))
 
-    # ---------- EXCLUIR TIPO DE PAGAMENTO ----------
     @app.route('/excluir-tipopagamento/<int:tipo_id>', methods=['POST'])
     def excluir_tipo_pagamento(tipo_id):
         if 'usuario' not in session:
             return redirect(url_for('login_view'))
 
         tipo = TipoPagamento.query.get_or_404(tipo_id)
+        if Venda.query.filter_by(tipo_pagamento_id=tipo.id).first():
+            return "Este tipo de pagamento já foi usado em uma venda e não pode ser excluído.", 400
+
         db.session.delete(tipo)
         db.session.commit()
         return redirect(url_for('cadastrar_pagamento'))
 
-    # ---------- EDITAR PRODUTO ----------
     @app.route('/editar-produto/<int:produto_id>', methods=['GET', 'POST'])
     def editar_produto(produto_id):
         if 'usuario' not in session:
@@ -42,16 +45,20 @@ def register_routes(app):
         if request.method == 'POST':
             novo_tipo_id = request.form['tipo_produto_id']
             nova_quantidade = request.form['quantidade']
+            novo_preco = request.form['preco']
 
             produto.tipo_produto_id = novo_tipo_id
             produto.quantidade = nova_quantidade
+
+            tipo = TipoProduto.query.get(novo_tipo_id)
+            if tipo:
+                tipo.preco = novo_preco
 
             db.session.commit()
             return redirect(url_for('painel'))
 
         return render_template('editar_produto.html', produto=produto, tipos=tipos)
 
-    # ---------- LOGIN ----------
     @app.route('/')
     def login_view():
         return render_template('login.html')
@@ -73,7 +80,6 @@ def register_routes(app):
         else:
             return render_template('login.html', erro="Usuário ou senha inválidos")
 
-    # ---------- CADASTRO DE USUÁRIO ----------
     @app.route('/cadastrar-usuario', methods=['GET', 'POST'])
     def cadastrar_usuario():
         if request.method == 'POST':
@@ -105,13 +111,11 @@ def register_routes(app):
 
         return render_template('cadastro.html')
 
-    # ---------- LOGOUT ----------
     @app.route('/logout')
     def logout():
         session.pop('usuario', None)
         return redirect(url_for('login_view'))
 
-    # ---------- HOME ----------
     @app.route('/home')
     def home():
         if 'usuario' not in session:
@@ -129,7 +133,6 @@ def register_routes(app):
             valor_total=f"{valor_total:.2f}"
         )
 
-    # ---------- FORMULÁRIO DE CADASTRO DE PRODUTO ----------
     @app.route('/cadastrar-produto', methods=['GET', 'POST'])
     def exibir_form_produto():
         if 'usuario' not in session:
@@ -159,7 +162,6 @@ def register_routes(app):
 
         return render_template('cadastrar_produto.html', categorias=categorias)
 
-    # ---------- REGISTRAR VENDA (HTML) ----------
     @app.route('/registrar-venda', methods=['GET'])
     def registrar_venda_view():
         if 'usuario' not in session:
@@ -169,7 +171,6 @@ def register_routes(app):
         pagamentos = TipoPagamento.query.all()
         return render_template('registrar_venda.html', tipos=tipos, pagamentos=pagamentos)
 
-    # ---------- CADASTRAR TIPO DE PAGAMENTO (HTML) ----------
     @app.route('/cadastrar-pagamento', methods=['GET', 'POST'])
     def cadastrar_pagamento():
         if 'usuario' not in session:
@@ -195,7 +196,6 @@ def register_routes(app):
 
         return render_template('cadastrar_pagamento.html', tipos_pagamento=tipos_pagamento)
 
-    # ---------- LISTAR VENDAS (HTML) ----------
     @app.route('/listar-vendas')
     def listar_vendas_html():
         if 'usuario' not in session:
@@ -204,7 +204,6 @@ def register_routes(app):
         vendas = Venda.query.all()
         return render_template('listar_vendas.html', vendas=vendas)
 
-    # ---------- ADICIONAR ESTOQUE ----------
     @app.route('/adicionar-estoque', methods=['GET', 'POST'])
     def adicionar_estoque():
         if 'usuario' not in session:
@@ -228,7 +227,6 @@ def register_routes(app):
 
         return render_template('adicionar_estoque.html', produtos=tipos)
 
-    # ---------- API - CRIAR TIPO DE PAGAMENTO ----------
     @app.route('/tipopagamento', methods=['POST'])
     def criar_tipo_pagamento():
         data = request.get_json()
@@ -265,7 +263,6 @@ def register_routes(app):
             'erros': erros
         }), 201
 
-    # ---------- API - LISTAR TIPOS DE PAGAMENTO ----------
     @app.route('/tipopagamento', methods=['GET'])
     def listar_tipos_pagamento():
         if 'usuario' not in session:
@@ -274,7 +271,6 @@ def register_routes(app):
         tipos = TipoPagamento.query.all()
         return jsonify([{'id': t.id, 'nome': t.nome} for t in tipos])
 
-    # ---------- PAINEL ----------
     @app.route('/painel')
     def painel():
         if 'usuario' not in session:
@@ -282,18 +278,21 @@ def register_routes(app):
 
         tipos = TipoProduto.query.all()
         dados_estoque = []
+
         for tipo in tipos:
-            produtos = Produto.query.filter_by(tipo_produto_id=tipo.id).all()
-            for produto in produtos:
-                qtd_vendida = sum(
-                    item.quantidade for item in tipo.itens_venda if item.tipo_produto_id == tipo.id
-                )
-                dados_estoque.append({
-                    'id': produto.id,
-                    'tipo': tipo.nome,
-                    'estoque': produto.quantidade,
-                    'vendido': qtd_vendida,
-                    'preco': float(tipo.preco)
-                })
+            produto = Produto.query.filter_by(tipo_produto_id=tipo.id).first()
+            quantidade_estoque = produto.quantidade if produto else 0
+
+            qtd_vendida = db.session.query(func.sum(ItemVenda.quantidade))\
+                .filter(ItemVenda.tipo_produto_id == tipo.id)\
+                .scalar() or 0
+
+            dados_estoque.append({
+                'id': produto.id if produto else None,
+                'tipo': tipo.nome,
+                'estoque': quantidade_estoque,
+                'vendido': qtd_vendida,
+                'preco': float(tipo.preco)
+            })
 
         return render_template('painel.html', produtos=dados_estoque)

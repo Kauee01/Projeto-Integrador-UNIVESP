@@ -5,102 +5,139 @@
 {% block title %}Painel de Estoque{% endblock %}
 
 {% block content %}
+<!-- Importações do DataTables e Bootstrap -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 <style>
     * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
     body {
         font-family: 'Orbitron', sans-serif;
-        background: linear-gradient(120deg, #0f0c29, #302b63, #24243e);
+        background: linear-gradient(to right, #141e30, #243b55);
         color: #fff;
         min-height: 100vh;
         padding: 2rem;
     }
 
     h1 {
-        margin-bottom: 2rem;
         text-align: center;
-        text-shadow: 0 0 10px #8a2be2;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+        text-shadow: 0 0 12px #8a2be2;
     }
 
     table {
+        width: 90%;
+        margin: 0 auto;
         border-collapse: collapse;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.08);
         border-radius: 15px;
         overflow: hidden;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-        width: 80%;
-        margin: 0 auto;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
     }
 
     th, td {
         padding: 1rem;
         text-align: center;
+        color: white;
     }
 
     th {
-        background-color: rgba(138, 43, 226, 0.4);
+        background-color: rgba(138, 43, 226, 0.3);
+        font-weight: bold;
     }
 
     tr:nth-child(even) {
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: rgba(255, 255, 255, 0.04);
     }
 
     tr:hover {
-        background-color: rgba(255, 255, 255, 0.2);
+        background-color: rgba(255, 255, 255, 0.1);
     }
 
-    td {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    .acoes {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
     }
 
-    a.editar {
-        color: lightblue;
-        text-decoration: none;
+    .btn-editar,
+    .btn-excluir {
+        padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
-        margin-right: 10px;
-    }
-
-    form.excluir {
-        display: inline;
-    }
-
-    form.excluir button {
-        color: red;
-        background: none;
+        border-radius: 6px;
         border: none;
         cursor: pointer;
-        font-size: 0.9rem;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+    .btn-editar {
+        background-color: #8a2be2;
+        color: white;
+    }
+
+    .btn-editar:hover {
+        background-color: #6a1bbf;
+    }
+
+    .btn-excluir {
+        background-color: #e63946;
+        color: white;
+    }
+
+    .btn-excluir:hover {
+        background-color: #c82333;
     }
 </style>
 
 <h1>Painel de Estoque</h1>
-<table>
-    <tr>
-        <th>Tipo</th>
-        <th>Preço</th>
-        <th>Quantidade em Estoque</th>
-        <th>Vendidos</th>
-        <th>Ações</th>
-    </tr>
-    {% for produto in produtos %}
-    <tr>
-        <td>{{ produto.tipo }}</td>
-        <td>R$ {{ produto.preco }}</td>
-        <td>{{ produto.estoque }}</td>
-        <td>{{ produto.vendido }}</td>
-        <td>
-            <a href="/editar-produto/{{ produto.id }}" class="editar">Editar</a>
-            <form action="/excluir-produto/{{ produto.id }}" method="POST" class="excluir" onsubmit="return confirm('Tem certeza que deseja excluir?')">
-                <button type="submit">Excluir</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+
+<table id="estoque" class="display">
+    <thead>
+        <tr>
+            <th>Tipo</th>
+            <th>Preço</th>
+            <th>Quantidade em Estoque</th>
+            <th>Vendidos</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for produto in produtos %}
+        <tr>
+            <td>{{ produto.tipo }}</td>
+            <td>R$ {{ "%.2f"|format(produto.preco) }}</td>
+            <td>{{ produto.estoque }}</td>
+            <td>{{ produto.vendido }}</td>
+            <td class="acoes">
+                <a href="/editar-produto/{{ produto.id }}" class="btn-editar">Editar</a>
+                <form action="/excluir-produto/{{ produto.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir?')">
+                    <button type="submit" class="btn-excluir">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<!-- Ativa o DataTables -->
+<script>
+    $(document).ready(function () {
+        $('#estoque').DataTable({
+            paging: false,
+            info: false,
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
+            }
+        });
+    });
+</script>
 {% endblock %}
 </html>
