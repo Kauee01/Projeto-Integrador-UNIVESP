@@ -19,14 +19,9 @@ class Produto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tipo_produto_id = db.Column(db.Integer, db.ForeignKey('tipo_produto.id'), nullable=False)
     tipo_produto = db.relationship('TipoProduto', backref=db.backref('produtos_tipo', lazy=True))  # Renomeando o backref
-    
-    # Adicionando a coluna quantidade
-    quantidade = db.Column(db.Integer, default=0, nullable=False)
 
     def __repr__(self):
         return f'<Produto {self.id} - {self.tipo_produto.nome}>'
-
-
 
 class TipoProduto(db.Model):
     __tablename__ = 'tipo_produto'
@@ -37,10 +32,6 @@ class TipoProduto(db.Model):
     descricao = db.Column(db.Text)
 
     produtos = db.relationship('Produto', back_populates='tipo_produto', cascade="all, delete-orphan")
-
-
-
-
 
 class TipoPagamento(db.Model):
     __tablename__ = 'tipo_pagamento'
