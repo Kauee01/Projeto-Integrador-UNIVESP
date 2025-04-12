@@ -1,10 +1,10 @@
 from flask import request, jsonify, render_template, redirect, session, url_for
-from models import db, TipoProduto, Produto, Venda, ItemVenda, TipoPagamento, Categoria
+from models import db, TipoProduto, Produto, Venda, ItemVenda, TipoPagamento, Categoria, Usuario
 from datetime import datetime
 import pytz
 from sqlalchemy import func
 import sqlite3
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 def register_routes(app):
 
@@ -85,30 +85,22 @@ def register_routes(app):
         if request.method == 'POST':
             usuario = request.form['username']
             senha = request.form['senha']
-
-            conn = sqlite3.connect('instance/database.db')
-            cursor = conn.cursor()
-
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS usuarios (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    senha TEXT NOT NULL
-                )
-            """)
-
-            cursor.execute("SELECT id FROM usuarios WHERE username = ?", (usuario,))
-            if cursor.fetchone():
-                conn.close()
+        
+            # Verificar se o usuário já existe
+            usuario_existente = Usuario.query.filter_by(username=usuario).first()
+            if usuario_existente:
                 return render_template('cadastro.html', erro="Usuário já existe!")
-
-            senha_hash = generate_password_hash(senha)
-            cursor.execute("INSERT INTO usuarios (username, senha) VALUES (?, ?)", (usuario, senha_hash))
-            conn.commit()
-            conn.close()
-
+        
+             # Criar novo usuário
+            novo_usuario = Usuario(username=usuario)
+            novo_usuario.set_senha(senha)
+        
+             # Adicionar e salvar no banco de dados
+            db.session.add(novo_usuario)
+            db.session.commit()
+        
             return render_template('cadastro.html', sucesso="Conta criada com sucesso! Faça login.")
-
+    
         return render_template('cadastro.html')
 
     @app.route('/logout')
