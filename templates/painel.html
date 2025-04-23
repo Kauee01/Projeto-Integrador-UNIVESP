@@ -102,26 +102,23 @@
 <table id="estoque" class="display">
     <thead>
         <tr>
-            <th>Tipo</th>
+            <th>Nome do Produto</th>
             <th>Preço</th>
-            <th>Quantidade em Estoque</th>
             <th>Vendidos</th>
+            <th>Estoque</th>
             <th>Ações</th>
         </tr>
     </thead>
     <tbody>
         {% for produto in produtos %}
         <tr>
-            <td>{{ produto.tipo }}</td>
-            <td>R$ {{ "%.2f"|format(produto.preco) }}</td>
-            <td>{{ produto.estoque }}</td>
-            <td>{{ produto.vendido }}</td>
+            <td>{{ produto['tipo'] }}</td> <!-- Exibe apenas o nome do produto -->
+            <td>R$ {{ "%.2f"|format(produto['preco']) }}</td>
+            <td>{{ produto['vendido'] }}</td>
+            <td>{{ produto['estoque'] }}</td>
             <td class="acoes">
-                <a href="/editar-produto/{{ produto.id }}" class="btn-editar">Editar</a>
-                <form action="/excluir-produto/{{ produto.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir?')">
-                    <button type="submit" class="btn-excluir">Excluir</button>
-                </form>
-            </td>
+                <a href="/editar-produto/{{ produto['id'] }}" class="btn-editar">Editar</a>
+            </td>               
         </tr>
         {% endfor %}
     </tbody>
@@ -140,4 +137,3 @@
     });
 </script>
 {% endblock %}
-</html>

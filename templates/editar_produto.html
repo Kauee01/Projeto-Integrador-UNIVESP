@@ -21,7 +21,7 @@
         color: white;
     }
 
-    input, select, button {
+    input, select, button, textarea {
         display: block;
         width: 100%;
         margin-bottom: 1rem;
@@ -46,25 +46,72 @@
         color: lightblue;
         margin-top: 0.5rem;
     }
+
+    .senha-container {
+        margin-top: 1.5rem;
+        color: #fff;
+    }
+
+    .observacao-container {
+        margin-top: 1.5rem;
+    }
+
+    .atual-info {
+        font-size: 0.85rem;
+        color: #ccc;
+        margin-bottom: 0.3rem;
+    }
+
+    .mensagem {
+        background-color: #444;
+        color: #ffcc00;
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+
+    .mensagem.erro {
+        color: red;
+    }
+
+    .mensagem.sucesso {
+        color: #4caf50;
+    }
 </style>
 
 <form method="POST">
     <h2>Editar Produto</h2>
 
-    <label>Tipo do Produto:</label>
-    <select name="tipo_produto_id" required>
-        {% for tipo in tipos %}
-            <option value="{{ tipo.id }}" {% if tipo.id == produto.tipo_produto_id %}selected{% endif %}>
-                {{ tipo.nome }}
-            </option>
-        {% endfor %}
-    </select>
+    {% if erro %}
+    <div class="mensagem erro">{{ erro }}</div>
+    {% endif %}
 
-    <label>Quantidade:</label>
-    <input type="number" name="quantidade" value="{{ produto.quantidade }}" required>
+    {% if sucesso %}
+    <div class="mensagem sucesso">{{ sucesso }}</div>
+    {% endif %}
 
+    <!-- Nome do Produto -->
+    <label>Nome do Produto:</label>
+    <p class="atual-info">Nome atual: {{ produto.tipo_produto.nome }}</p>
+    <input type="text" name="nome" placeholder="Novo nome (opcional)" value="{{ produto.tipo_produto.nome }}">
+
+    <!-- Preço -->
     <label>Preço (R$):</label>
-    <input type="number" name="preco" step="0.01" value="{{ produto.preco }}" required>
+    <p class="atual-info">Preço atual: R$ {{ produto.preco }}</p>
+    <input type="number" name="preco" step="0.01" placeholder="Novo preço (opcional)" value="{{ produto.preco }}">
+
+    <!-- Campo de senha para confirmação -->
+    <div class="senha-container">
+        <label for="senha">Digite sua senha para confirmar:</label>
+        <input type="password" name="senha" id="senha" required>
+    </div>
+
+    <!-- Observações sobre o motivo da alteração (opcional) -->
+    <div class="observacao-container">
+        <label for="observacoes">Motivo da alteração (opcional):</label>
+        <textarea name="observacoes" placeholder="Explique o motivo da mudança (opcional)"></textarea>
+    </div>
 
     <button type="submit">Salvar</button>
     <a href="/painel">Cancelar</a>

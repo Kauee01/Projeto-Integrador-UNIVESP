@@ -18,7 +18,7 @@ class Produto(db.Model):
     __tablename__ = 'produtos'
     id = db.Column(db.Integer, primary_key=True)
     tipo_produto_id = db.Column(db.Integer, db.ForeignKey('tipo_produto.id'), nullable=False)
-    tipo_produto = db.relationship('TipoProduto', backref=db.backref('produtos_tipo', lazy=True))  # Renomeando o backref
+    tipo_produto = db.relationship('TipoProduto', back_populates='produtos')  # Usando back_populates aqui
 
     def __repr__(self):
         return f'<Produto {self.id} - {self.tipo_produto.nome}>'
@@ -82,3 +82,4 @@ class Usuario(db.Model):
         
     def check_senha(self, senha):
         return check_password_hash(self.senha, senha)
+

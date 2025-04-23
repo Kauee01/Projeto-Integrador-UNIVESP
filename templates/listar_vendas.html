@@ -2,7 +2,7 @@
 <html lang="pt-br">
 {% extends 'base.html' %}
 
-{% block title %}Lista de Tipos de Pagamento{% endblock %}
+{% block title %}Lista de Vendas Realizadas{% endblock %}
 
 {% block content %}
 <style>
@@ -39,25 +39,63 @@
     tr:hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
+
+    ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    li {
+        margin-bottom: 0.3rem;
+    }
+
+    .excluir-btn {
+        background-color: #ff4d4d;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .excluir-btn:hover {
+        background-color: #e60000;
+    }
 </style>
 
-<h2>Tipos de Pagamento Cadastrados</h2>
+<h2>Historico de Vendas Realizadas</h2>
 
 <table>
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Nome</th>
+            <th>ID da Venda</th>
+            <th>Data</th>
+            <th>Valor Total</th>
+            <th>Produtos</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
-        {% for tipo in tipos_pagamento %}
+        {% for venda in vendas %}
         <tr>
-            <td>{{ tipo.id }}</td>
-            <td>{{ tipo.nome }}</td>
+            <td>{{ venda.id }}</td>
+            <td>{{ venda.data.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>R$ {{ "%.2f"|format(venda.valor_total) }}</td>
+            <td>
+                <ul>
+                    {% for item in venda.itens %}
+                    <li>{{ item.tipo_produto.nome }} — {{ item.quantidade }} x R$ {{ "%.2f"|format(item.valor_produtos) }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td>
+                <form action="{{ url_for('excluir_venda', venda_id=venda.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta venda?');">
+                    <button type="submit" class="excluir-btn">Excluir</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
 {% endblock %}
-</html>

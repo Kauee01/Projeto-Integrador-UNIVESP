@@ -1,5 +1,5 @@
-from flask import request, jsonify, render_template, redirect, session, url_for
-from models import db, TipoProduto, Produto, Venda, ItemVenda, TipoPagamento, Categoria, Usuario
+from flask import request, jsonify, render_template, redirect, session, url_for, flash
+from models import db, TipoProduto, Produto, Venda, ItemVenda, TipoPagamento, Categoria, Usuario #Feedback  # Importando a tabela Feedback
 from datetime import datetime
 from sqlalchemy import func
 
@@ -14,6 +14,7 @@ def register_routes(app):
             return "Este produto está relacionado a vendas e não pode ser excluído.", 400
         db.session.delete(produto)
         db.session.commit()
+        print(f"Produto com id {produto_id} excluído do banco de dados.")  # Verificação de exclusão
         return redirect(url_for('painel'))
 
     @app.route('/excluir-tipopagamento/<int:tipo_id>', methods=['POST'])
@@ -29,26 +30,49 @@ def register_routes(app):
 
     @app.route('/editar-produto/<int:produto_id>', methods=['GET', 'POST'])
     def editar_produto(produto_id):
-        if 'usuario' not in session:
-            return redirect(url_for('login_view'))
-        produto = Produto.query.get_or_404(produto_id)
-        tipos = TipoProduto.query.all()
-        if request.method == 'POST':
-            novo_tipo_id = request.form['tipo_produto_id']
-            novo_preco = request.form['preco']
+            if 'usuario' not in session:
+                return redirect(url_for('login_view'))
+            
+            # Recupera o produto e os tipos de produto
+            produto = Produto.query.get_or_404(produto_id)
+            tipos = TipoProduto.query.all()
 
-            # Atualiza o tipo_produto_id do produto
-            produto.tipo_produto_id = novo_tipo_id
+            if request.method == 'POST':
+                novo_nome = request.form.get('nome')
+                novo_preco = request.form.get('preco')
+                novo_tipo_id = request.form.get('tipo_produto_id')  # Agora vamos garantir que o tipo seja passado corretamente
+                motivo_alteracao = request.form.get('observacoes', '')  # Campo para o motivo da alteração
+                senha = request.form.get('senha')
 
-            # Atualiza o preço do TipoProduto associado
-            tipo = TipoProduto.query.get(novo_tipo_id)
-            if tipo:
-                tipo.preco = novo_preco
+                # Verifica a senha do usuário para confirmação
+                usuario = Usuario.query.filter_by(username=session['usuario']).first()
+                if not usuario.check_senha(senha):
+                    return "Senha incorreta. Tente novamente."
 
-            db.session.commit()
-            return redirect(url_for('painel'))
+                # Atualiza os campos do produto
+                if novo_nome:
+                    produto.tipo_produto.nome = novo_nome  # Atualiza o nome do tipo de produto se necessário
+                
+                if novo_preco:
+                    produto.preco = novo_preco  # Atualiza o preço do produto
+                
+                if novo_tipo_id:
+                    produto.tipo_produto_id = novo_tipo_id  # Atualiza o tipo de produto, garantindo que seja o tipo certo
+                
+                # Se houver motivo de alteração, cria o feedback
+                if motivo_alteracao:
+                    feedback = Feedback(
+                        produto_id=produto.id,
+                        motivo=motivo_alteracao,
+                        usuario=session.get('usuario'),  # Pega o nome do usuário da sessão
+                        data=datetime.utcnow()
+                    )
+                    db.session.add(feedback)
 
-        return render_template('editar_produto.html', produto=produto, tipos=tipos)
+                db.session.commit()  # Comita as alterações no produto
+                return redirect(url_for('painel'))
+
+            return render_template('editar_produto.html', produto=produto, tipos=tipos)
 
     @app.route('/')
     def login_view():
@@ -146,13 +170,87 @@ def register_routes(app):
 
         return render_template('cadastrar_produto.html', categorias=categorias)
 
-    @app.route('/registrar-venda', methods=['GET'])
-    def registrar_venda_view():
+    @app.route('/registrar-venda', methods=['GET', 'POST'])
+    def registrar_venda():
         if 'usuario' not in session:
             return redirect(url_for('login_view'))
-        tipos = TipoProduto.query.all()
-        pagamentos = TipoPagamento.query.all()
-        return render_template('registrar_venda.html', tipos=tipos, pagamentos=pagamentos)
+
+        tipos_produto = TipoProduto.query.all()
+        tipos_pagamento = TipoPagamento.query.all()
+
+        total_geral = 0.0
+        dados_produtos = []
+        for tipo in tipos_produto:
+            quantidade_estoque = db.session.query(func.count(Produto.id)).filter_by(tipo_produto_id=tipo.id).scalar() or 0
+            dados_produtos.append({
+                'id': tipo.id,
+                'nome': tipo.nome,
+                'preco': tipo.preco,
+                'quantidade': quantidade_estoque
+            })
+
+        if request.method == 'POST':
+            try:
+                dados = request.get_json()
+            except Exception as e:
+                return jsonify({'error': f'Erro ao processar os dados. {str(e)}'}), 400
+
+            tipo_pagamento_id = dados.get('tipo_pagamento_id')
+            itens_venda = dados.get('itens', [])
+
+            if not tipo_pagamento_id or not itens_venda:
+                return jsonify({'error': 'Por favor, preencha todos os campos.'}), 400
+
+            try:
+                tipo_pagamento_id = int(tipo_pagamento_id)
+            except ValueError:
+                return jsonify({'error': 'Erro ao processar os dados. Certifique-se de que os valores estão corretos.'}), 400
+
+            total_geral = 0
+            try:
+                nova_venda = Venda(tipo_pagamento_id=tipo_pagamento_id, data=datetime.now(), valor_total=0)
+                db.session.add(nova_venda)
+                db.session.commit()
+
+                for item in itens_venda:
+                    produto = TipoProduto.query.get(item['produto_id'])
+                    if not produto:
+                        return jsonify({'error': f'Produto não encontrado.'}), 404
+
+                    quantidade_estoque = db.session.query(func.count(Produto.id)).filter_by(tipo_produto_id=produto.id).scalar() or 0
+                    if item['quantidade'] > quantidade_estoque:
+                        return jsonify({'error': f'Estoque insuficiente para o produto {produto.nome}. Estoque disponível: {quantidade_estoque}.'}), 400
+
+                    total_produto = produto.preco * item['quantidade']
+                    total_geral += total_produto
+
+                    item_venda = ItemVenda(
+                        venda_id=nova_venda.id,
+                        tipo_produto_id=produto.id,
+                        quantidade=item['quantidade'],
+                        valor_produtos=produto.preco
+                    )
+                    db.session.add(item_venda)
+
+                    produtos = Produto.query.filter_by(tipo_produto_id=produto.id).limit(item['quantidade']).all()
+                    for produto_remover in produtos:
+                        db.session.delete(produto_remover)
+
+                nova_venda.valor_total = total_geral
+                db.session.commit()
+
+                return jsonify({'success': True}), 200
+
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({'error': f'Erro ao registrar a venda: {str(e)}'}), 500
+
+        return render_template(
+            'registrar_venda.html',
+            produtos=dados_produtos,
+            pagamentos=tipos_pagamento,
+            total_geral=total_geral
+        )
 
     @app.route('/cadastrar-pagamento', methods=['GET', 'POST'])
     def cadastrar_pagamento():
@@ -173,58 +271,138 @@ def register_routes(app):
         return render_template('cadastrar_pagamento.html', tipos_pagamento=tipos_pagamento)
 
     @app.route('/listar-vendas')
-    def listar_vendas_html():
+    def listar_vendas():
         if 'usuario' not in session:
             return redirect(url_for('login_view'))
-        vendas = Venda.query.all()
+
+        # Carrega as vendas com todos os itens e seus detalhes
+        vendas = Venda.query.order_by(Venda.data.desc()).all()  # Ordenando por data
+        
         return render_template('listar_vendas.html', vendas=vendas)
 
-    @app.route('/adicionar-estoque', methods=['GET', 'POST'])
-    def adicionar_estoque():
+    @app.route('/inventario-estoque', methods=['GET', 'POST'])
+    def inventario_estoque():
         if 'usuario' not in session:
             return redirect(url_for('login_view'))
-        tipos = TipoProduto.query.all()
+
+        produtos = TipoProduto.query.all()
+        produtos_estoque = Produto.query.all()
+
         if request.method == 'POST':
-            tipo_produto_id = request.form['tipo_produto_id']
-            quantidade = int(request.form['quantidade'])
+            sucesso = None
+            erro = None
+            mensagem = None  # Variável para mensagem descritiva
 
-            # Validação dos dados
-            if not tipo_produto_id or quantidade <= 0:
-                return render_template('adicionar_estoque.html', erro="Dados inválidos", produtos=tipos)
+            produto_id_adicionar = request.form.get('produto_id_adicionar')
+            quantidade_adicionar = request.form.get('quantidade_adicionar')
 
-            # Cria novos registros de Produto para representar a quantidade adicionada
-            for _ in range(quantidade):
-                novo_produto = Produto(tipo_produto_id=tipo_produto_id)
-                db.session.add(novo_produto)
+            produto_id_remover = request.form.get('produto_id_remover')
+            quantidade_remover = request.form.get('quantidade_remover')
 
-            db.session.commit()
-            return render_template('adicionar_estoque.html', sucesso="Estoque atualizado com sucesso", produtos=tipos)
+            # Adicionar ao Estoque
+            if produto_id_adicionar and quantidade_adicionar:
+                try:
+                    quantidade_adicionar = int(quantidade_adicionar)
+                    if quantidade_adicionar < 1:
+                        erro = "A quantidade a adicionar deve ser maior que zero!"
+                    else:
+                        for _ in range(quantidade_adicionar):
+                            novo_produto = Produto(tipo_produto_id=produto_id_adicionar)
+                            db.session.add(novo_produto)
 
-        return render_template('adicionar_estoque.html', produtos=tipos)
+                        db.session.commit()
+                        sucesso = f"{quantidade_adicionar} unidade(s) adicionada(s) ao estoque!"
+                        mensagem = f"{quantidade_adicionar} unidade(s) do produto foi(m) adicionada(s) ao estoque."
+
+                except Exception as e:
+                    db.session.rollback()
+                    erro = f"Ocorreu um erro ao adicionar: {str(e)}"
+
+            # Remover do Estoque
+            elif produto_id_remover and quantidade_remover:
+                try:
+                    quantidade_remover = int(quantidade_remover)
+                    
+                    # Garantir que a quantidade a remover seja válida
+                    if quantidade_remover < 1:
+                        erro = "A quantidade a remover deve ser maior que zero!"
+                        return render_template('inventario_estoque.html', produtos=produtos, sucesso=sucesso, erro=erro, produtos_estoque=produtos_estoque)
+
+                    # Buscar as unidades para remover
+                    produtos_para_remover = Produto.query.filter_by(tipo_produto_id=produto_id_remover).limit(quantidade_remover).all()
+
+                    if len(produtos_para_remover) < quantidade_remover:
+                        erro = "Não há quantidade suficiente para remover do estoque!"
+                    else:
+                        for produto in produtos_para_remover:
+                            db.session.delete(produto)
+
+                        db.session.commit()
+                        sucesso = f"{quantidade_remover} unidade(s) removida(s) do estoque!"
+                        mensagem = f"{quantidade_remover} unidade(s) do produto foi(m) removida(s) do estoque."
+
+                except Exception as e:
+                    db.session.rollback()
+                    erro = f"Ocorreu um erro ao remover: {str(e)}"
+
+            # Caso nada seja preenchido
+            elif not (produto_id_adicionar or produto_id_remover):
+                erro = "Por favor, preencha ao menos um campo (Adicionar ou Remover)."
+
+            # Redireciona após a edição do estoque
+            return render_template('inventario_estoque.html', produtos=produtos, sucesso=sucesso, erro=erro, mensagem=mensagem, produtos_estoque=produtos_estoque)
+
+        return render_template('inventario_estoque.html', produtos=produtos, produtos_estoque=produtos_estoque)
 
     @app.route('/painel')
     def painel():
+            if 'usuario' not in session:
+                return redirect(url_for('login_view'))
+
+            tipos = TipoProduto.query.all()
+            dados_estoque = []
+
+            for tipo in tipos:
+                # Conta a quantidade de produtos para este tipo_produto_id
+                quantidade_estoque = db.session.query(func.count(Produto.id)).filter_by(tipo_produto_id=tipo.id).scalar() or 0
+
+                # Calcula a quantidade vendida
+                qtd_vendida = db.session.query(func.sum(ItemVenda.quantidade))\
+                    .filter(ItemVenda.tipo_produto_id == tipo.id)\
+                    .scalar() or 0
+
+                dados_estoque.append({
+                    'id': tipo.id,
+                    'tipo': tipo.nome,
+                    'estoque': quantidade_estoque,
+                    'vendido': qtd_vendida,
+                    'preco': float(tipo.preco)
+                })
+
+            return render_template('painel.html', produtos=dados_estoque)
+    
+    @app.route('/excluir-venda/<int:venda_id>', methods=['POST'])
+    def excluir_venda(venda_id):
         if 'usuario' not in session:
             return redirect(url_for('login_view'))
 
-        tipos = TipoProduto.query.all()
-        dados_estoque = []
+        venda = Venda.query.get_or_404(venda_id)
 
-        for tipo in tipos:
-            # Conta a quantidade de produtos para este tipo_produto_id
-            quantidade_estoque = db.session.query(func.count(Produto.id)).filter_by(tipo_produto_id=tipo.id).scalar() or 0
+        try:
+            itens = ItemVenda.query.filter_by(venda_id=venda.id).all()
 
-            # Calcula a quantidade vendida
-            qtd_vendida = db.session.query(func.sum(ItemVenda.quantidade))\
-                .filter(ItemVenda.tipo_produto_id == tipo.id)\
-                .scalar() or 0
+            for item in itens:
+                for _ in range(item.quantidade):
+                    produto = Produto(tipo_produto_id=item.tipo_produto_id)
+                    db.session.add(produto)
 
-            dados_estoque.append({
-                'id': tipo.id,
-                'tipo': tipo.nome,
-                'estoque': quantidade_estoque,
-                'vendido': qtd_vendida,
-                'preco': float(tipo.preco)
-            })
+            ItemVenda.query.filter_by(venda_id=venda.id).delete()
+            db.session.delete(venda)
+            db.session.commit()
 
-        return render_template('painel.html', produtos=dados_estoque)
+            return redirect(url_for('listar_vendas'))
+
+        except Exception as e:
+            db.session.rollback()
+            return f"Erro ao excluir a venda: {str(e)}", 500
+

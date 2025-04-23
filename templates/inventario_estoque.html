@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% extends 'base.html' %}
+
+{% block title %}Inventário de Estoque{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    form {
+        background-color: #2e2e4d;
+        padding: 2rem;
+        border-radius: 10px;
+        width: 400px;
+        margin: 2rem auto;
+        box-shadow: 0 0 10px #000;
+        color: #fff;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    input, select, button {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border: none;
+        border-radius: 5px;
+    }
+
+    button {
+        background-color: #4caf50;
+        color: white;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    .erro {
+        color: #ff5c5c;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    .sucesso {
+        color: lightgreen;
+        font-weight: bold;
+        text-align: center;
+    }
+</style>
+
+<form method="POST">
+    <h2>Inventário de Estoque</h2>
+
+    {% if erro %}
+    <p class="erro">{{ erro }}</p>
+    {% elif sucesso %}
+    <p class="sucesso">{{ sucesso }}</p>
+    {% endif %}
+
+    <!-- Adicionar ao Estoque -->
+    <label for="produto_id_adicionar" style="font-weight: bold; color: #fff;">Produto para Adicionar:</label>
+    <select name="produto_id_adicionar">
+        <option value="">Selecione um produto</option>
+        {% for produto in produtos %}
+        <option value="{{ produto.id }}">{{ produto.nome }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="quantidade_adicionar" style="font-weight: bold; color: #fff;">Quantidade a Adicionar:</label>
+    <input type="number" name="quantidade_adicionar" min="1" placeholder="Quantidade a adicionar">
+
+    <!-- Remover do Estoque -->
+    <label for="produto_id_remover" style="font-weight: bold; color: #fff;">Produto para Remover:</label>
+    <select name="produto_id_remover">
+        <option value="">Selecione um produto</option>
+        {% for produto in produtos %}
+        <option value="{{ produto.id }}">{{ produto.nome }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="quantidade_remover" style="font-weight: bold; color: #fff;">Quantidade a Remover:</label>
+    <input type="number" name="quantidade_remover" min="1" placeholder="Quantidade a remover">
+
+    <!-- Botão de Envio -->
+    <button type="submit">Atualizar Estoque</button>
+</form>
+
+{% endblock %}
+</html>

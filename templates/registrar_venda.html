@@ -6,109 +6,149 @@
 
 {% block content %}
 <style>
-    h2 {
-        text-align: center;
-        margin-bottom: 2rem;
-        text-shadow: 0 0 10px #8a2be2;
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #6a1b9a;
+        padding: 2rem;
     }
 
     form {
-        background-color: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
+        background-color: #2e2e4d;
         padding: 2rem;
-        max-width: 600px;
-        margin: 0 auto;
-        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        width: 500px;
+        margin: 2rem auto;
+        box-shadow: 0 0 10px #000;
+        color: #fff;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 1rem;
+        font-size: 1.8rem;
+        color: #fff;
     }
 
     label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: bold;
+        color: #fff;
     }
 
-    select, input {
+    input, select, button {
         width: 100%;
-        padding: 0.5rem;
-        margin-bottom: 1.5rem;
-        border-radius: 5px;
+        padding: 0.75rem;
+        margin-bottom: 1.2rem;
         border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        background-color: #f1f3f5;
+        color: #333;
     }
 
     button {
         background-color: #4caf50;
         color: white;
-        border: none;
-        padding: 0.8rem 1.5rem;
-        border-radius: 8px;
         cursor: pointer;
         font-weight: bold;
+        transition: background-color 0.3s ease;
     }
 
     button:hover {
         background-color: #45a049;
     }
 
-    .mensagem {
+    .erro {
+        color: #ff5c5c;
+        font-size: 0.9rem;
         text-align: center;
         margin-top: 1rem;
-        font-size: 0.95rem;
+    }
+
+    .produto {
+        background-color: #f1f3f5;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 5px;
+        color: #333;
+    }
+
+    .produto span {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .produto-total {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #ff6347;
+        margin-top: 0.5rem;
+    }
+
+    .estoque-info {
+        font-size: 0.9rem;
+        color: #888;
+    }
+
+    #total-geral {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #2d87f0;
+        text-align: right;
     }
 </style>
 
 <h2>Registrar Nova Venda</h2>
 
-<form method="POST">
-    <!-- Tipo de Pagamento -->
+<form id="form-venda">
     <label for="tipo_pagamento">Tipo de Pagamento</label>
     <select name="tipo_pagamento_id" id="tipo_pagamento" required>
         <option value="">Selecione...</option>
-        <!-- Tipos de pagamento serão carregados dinamicamente via JavaScript -->
+        {% for pagamento in pagamentos %}
+            <option value="{{ pagamento.id }}">{{ pagamento.nome }}</option>
+        {% endfor %}
     </select>
 
-    <!-- Itens da Venda (Produtos Disponíveis) -->
     <label for="itens">Itens da Venda (Selecione)</label>
-    {% if produtos_estoque %}
-        {% for produto in produtos_estoque %}
-            <div style="margin-bottom: 1rem;">
-                <label>{{ produto.nome }} - R$ {{ produto.preco }}</label>
-                <input type="number" name="quantidade_{{ produto.id }}" placeholder="Quantidade" min="0" value="0">
+    {% if produtos %}
+        {% for produto in produtos %}
+            <div class="produto">
+                <span>{{ produto.nome }} - R$ {{ "%.2f"|format(produto.preco) }}</span>
+                <div class="estoque-info">Disponível em estoque: {{ produto.quantidade }}</div>
+                <input type="number" class="quantidade-input" data-produto-id="{{ produto.id }}" placeholder="Quantidade" min="0" value="0" max="{{ produto.quantidade }}">
+                <span class="produto-total" id="total_{{ produto.id }}">R$ 0.00</span>
             </div>
         {% endfor %}
     {% else %}
         <p>Não há produtos cadastrados no momento.</p>
     {% endif %}
 
-    <button type="submit">Registrar Venda</button>
+    <div id="total-geral" class="produto-total">
+        Total: R$ {{ "%.2f"|format(total_geral) }}
+    </div>
 
-    {% if mensagem %}
-        <p class="mensagem" style="color: lightgreen;">{{ mensagem }}</p>
-    {% endif %}
+    <button type="button" id="registrar-venda-btn">Registrar Venda</button>
+
+    <p class="erro" id="mensagem-erro" style="display: none;"></p>
 </form>
 
-<script>
-    // Função para carregar os tipos de pagamento da API
-    async function carregarTiposPagamento() {
-        try {
-            const response = await fetch('/tipopagamento');
-            const tipos = await response.json();
-
-            const select = document.getElementById('tipo_pagamento');
-            tipos.forEach(tipo => {
-                const option = document.createElement('option');
-                option.value = tipo.id; // Usando o id como valor
-                option.textContent = tipo.nome; // Exibindo o nome do tipo de pagamento
-                select.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Erro ao carregar tipos de pagamento:', error);
-        }
+<script id="dados-precos" type="application/json">
+    {
+    {% for produto in produtos %}
+        "{{ produto.id }}": {{ produto.preco }}{% if not loop.last %},{% endif %}
+    {% endfor %}
     }
-
-    // Carregar os tipos de pagamento assim que a página for carregada
-    window.onload = carregarTiposPagamento;
 </script>
+
+<script src="{{ url_for('static', filename='js/registrar_venda.js') }}"></script>
 
 {% endblock %}
 </html>
