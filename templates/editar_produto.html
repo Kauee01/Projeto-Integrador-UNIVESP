@@ -91,26 +91,15 @@
     <div class="mensagem sucesso">{{ sucesso }}</div>
     {% endif %}
 
-    <!-- Nome do Produto -->
-    <label>Nome do Produto:</label>
-    <p class="atual-info">Nome atual: {{ produto.tipo_produto.nome }}</p>
-    <input type="text" name="nome" placeholder="Novo nome (opcional)" value="{{ produto.tipo_produto.nome }}">
-
     <!-- Preço -->
     <label>Preço (R$):</label>
-    <p class="atual-info">Preço atual: R$ {{ produto.preco }}</p>
-    <input type="number" name="preco" step="0.01" placeholder="Novo preço (opcional)" value="{{ produto.preco }}">
+    <p class="atual-info">Preço atual: R$ {{ tipo_produto.preco or "Indefinido" }}</p>
+    <input type="number" name="preco" step="0.01" placeholder="Novo preço (opcional)" value="{{ tipo_produto.preco }}">
 
     <!-- Campo de senha para confirmação -->
     <div class="senha-container">
         <label for="senha">Digite sua senha para confirmar:</label>
         <input type="password" name="senha" id="senha" required>
-    </div>
-
-    <!-- Observações sobre o motivo da alteração (opcional) -->
-    <div class="observacao-container">
-        <label for="observacoes">Motivo da alteração (opcional):</label>
-        <textarea name="observacoes" placeholder="Explique o motivo da mudança (opcional)"></textarea>
     </div>
 
     <button type="submit">Salvar</button>

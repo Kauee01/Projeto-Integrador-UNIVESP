@@ -112,12 +112,12 @@
     <tbody>
         {% for produto in produtos %}
         <tr>
-            <td>{{ produto['tipo'] }}</td> <!-- Exibe apenas o nome do produto -->
-            <td>R$ {{ "%.2f"|format(produto['preco']) }}</td>
-            <td>{{ produto['vendido'] }}</td>
-            <td>{{ produto['estoque'] }}</td>
+            <td>{{ produto['tipo'] }}</td>
+            <td>R$ {{ "%.2f"|format(produto['preco'] or 0) }}</td>
+            <td>{{ produto['vendido'] or 0 }}</td>
+            <td>{{ produto['estoque'] or 0 }}</td>
             <td class="acoes">
-                <a href="/editar-produto/{{ produto['id'] }}" class="btn-editar">Editar</a>
+                <a href="/editar-tipo-produto/{{ produto['id'] }}" class="btn-editar">Editar</a>
             </td>               
         </tr>
         {% endfor %}

@@ -1,5 +1,5 @@
 from flask import request, jsonify, render_template, redirect, session, url_for, flash
-from models import db, TipoProduto, Produto, Venda, ItemVenda, TipoPagamento, Categoria, Usuario #Feedback  # Importando a tabela Feedback
+from models import db, TipoProduto, Produto, Venda, ItemVenda, TipoPagamento, Categoria, Usuario
 from datetime import datetime
 from sqlalchemy import func
 
@@ -28,51 +28,39 @@ def register_routes(app):
         db.session.commit()
         return redirect(url_for('cadastrar_pagamento'))
 
-    @app.route('/editar-produto/<int:produto_id>', methods=['GET', 'POST'])
-    def editar_produto(produto_id):
-            if 'usuario' not in session:
-                return redirect(url_for('login_view'))
+    @app.route('/editar-tipo-produto/<int:tipo_produto_id>', methods=['GET', 'POST'])
+    def editar_tipo_produto(tipo_produto_id):
+        if 'usuario' not in session:
+            return redirect(url_for('login_view'))
+        
+        tipo_produto = TipoProduto.query.get_or_404(tipo_produto_id)
+        tipos = TipoProduto.query.all()
+        
+        if request.method == 'POST':
+            novo_nome = request.form.get('nome')
+            novo_preco = request.form.get('preco')
+            senha = request.form.get('senha')
             
-            # Recupera o produto e os tipos de produto
-            produto = Produto.query.get_or_404(produto_id)
-            tipos = TipoProduto.query.all()
-
-            if request.method == 'POST':
-                novo_nome = request.form.get('nome')
-                novo_preco = request.form.get('preco')
-                novo_tipo_id = request.form.get('tipo_produto_id')  # Agora vamos garantir que o tipo seja passado corretamente
-                motivo_alteracao = request.form.get('observacoes', '')  # Campo para o motivo da alteração
-                senha = request.form.get('senha')
-
-                # Verifica a senha do usuário para confirmação
-                usuario = Usuario.query.filter_by(username=session['usuario']).first()
-                if not usuario.check_senha(senha):
-                    return "Senha incorreta. Tente novamente."
-
-                # Atualiza os campos do produto
-                if novo_nome:
-                    produto.tipo_produto.nome = novo_nome  # Atualiza o nome do tipo de produto se necessário
-                
-                if novo_preco:
-                    produto.preco = novo_preco  # Atualiza o preço do produto
-                
-                if novo_tipo_id:
-                    produto.tipo_produto_id = novo_tipo_id  # Atualiza o tipo de produto, garantindo que seja o tipo certo
-                
-                # Se houver motivo de alteração, cria o feedback
-                if motivo_alteracao:
-                    feedback = Feedback(
-                        produto_id=produto.id,
-                        motivo=motivo_alteracao,
-                        usuario=session.get('usuario'),  # Pega o nome do usuário da sessão
-                        data=datetime.utcnow()
-                    )
-                    db.session.add(feedback)
-
-                db.session.commit()  # Comita as alterações no produto
-                return redirect(url_for('painel'))
-
-            return render_template('editar_produto.html', produto=produto, tipos=tipos)
+            usuario = Usuario.query.filter_by(username=session['usuario']).first()
+            if not usuario.check_senha(senha):
+                return render_template('editar_produto.html', tipo_produto=tipo_produto, tipos=tipos, erro="Senha incorreta.")
+            
+            if novo_nome:
+                tipo_produto.nome = novo_nome
+            
+            if novo_preco:
+                try:
+                    novo_preco = float(novo_preco)
+                    if novo_preco <= 0:
+                        raise ValueError("Preço inválido")
+                    tipo_produto.preco = novo_preco
+                except (ValueError, TypeError):
+                    return render_template('editar_produto.html', tipo_produto=tipo_produto, tipos=tipos, erro="Preço inválido.")
+            
+            db.session.commit()
+            return redirect(url_for('painel'))
+        
+        return render_template('editar_produto.html', tipo_produto=tipo_produto, tipos=tipos)
 
     @app.route('/')
     def login_view():
@@ -284,21 +272,20 @@ def register_routes(app):
     def inventario_estoque():
         if 'usuario' not in session:
             return redirect(url_for('login_view'))
-
+        
         produtos = TipoProduto.query.all()
         produtos_estoque = Produto.query.all()
-
+        
         if request.method == 'POST':
             sucesso = None
             erro = None
-            mensagem = None  # Variável para mensagem descritiva
-
+            mensagem = None
+            
             produto_id_adicionar = request.form.get('produto_id_adicionar')
             quantidade_adicionar = request.form.get('quantidade_adicionar')
-
             produto_id_remover = request.form.get('produto_id_remover')
             quantidade_remover = request.form.get('quantidade_remover')
-
+            
             # Adicionar ao Estoque
             if produto_id_adicionar and quantidade_adicionar:
                 try:
@@ -309,77 +296,65 @@ def register_routes(app):
                         for _ in range(quantidade_adicionar):
                             novo_produto = Produto(tipo_produto_id=produto_id_adicionar)
                             db.session.add(novo_produto)
-
                         db.session.commit()
                         sucesso = f"{quantidade_adicionar} unidade(s) adicionada(s) ao estoque!"
                         mensagem = f"{quantidade_adicionar} unidade(s) do produto foi(m) adicionada(s) ao estoque."
-
                 except Exception as e:
                     db.session.rollback()
                     erro = f"Ocorreu um erro ao adicionar: {str(e)}"
-
+            
             # Remover do Estoque
             elif produto_id_remover and quantidade_remover:
                 try:
                     quantidade_remover = int(quantidade_remover)
-                    
-                    # Garantir que a quantidade a remover seja válida
                     if quantidade_remover < 1:
                         erro = "A quantidade a remover deve ser maior que zero!"
                         return render_template('inventario_estoque.html', produtos=produtos, sucesso=sucesso, erro=erro, produtos_estoque=produtos_estoque)
-
-                    # Buscar as unidades para remover
+                    
                     produtos_para_remover = Produto.query.filter_by(tipo_produto_id=produto_id_remover).limit(quantidade_remover).all()
-
                     if len(produtos_para_remover) < quantidade_remover:
                         erro = "Não há quantidade suficiente para remover do estoque!"
                     else:
                         for produto in produtos_para_remover:
                             db.session.delete(produto)
-
                         db.session.commit()
                         sucesso = f"{quantidade_remover} unidade(s) removida(s) do estoque!"
                         mensagem = f"{quantidade_remover} unidade(s) do produto foi(m) removida(s) do estoque."
-
                 except Exception as e:
                     db.session.rollback()
                     erro = f"Ocorreu um erro ao remover: {str(e)}"
-
+            
             # Caso nada seja preenchido
             elif not (produto_id_adicionar or produto_id_remover):
                 erro = "Por favor, preencha ao menos um campo (Adicionar ou Remover)."
-
-            # Redireciona após a edição do estoque
+            
             return render_template('inventario_estoque.html', produtos=produtos, sucesso=sucesso, erro=erro, mensagem=mensagem, produtos_estoque=produtos_estoque)
-
+        
         return render_template('inventario_estoque.html', produtos=produtos, produtos_estoque=produtos_estoque)
 
     @app.route('/painel')
     def painel():
-            if 'usuario' not in session:
-                return redirect(url_for('login_view'))
-
-            tipos = TipoProduto.query.all()
-            dados_estoque = []
-
-            for tipo in tipos:
-                # Conta a quantidade de produtos para este tipo_produto_id
-                quantidade_estoque = db.session.query(func.count(Produto.id)).filter_by(tipo_produto_id=tipo.id).scalar() or 0
-
-                # Calcula a quantidade vendida
-                qtd_vendida = db.session.query(func.sum(ItemVenda.quantidade))\
-                    .filter(ItemVenda.tipo_produto_id == tipo.id)\
-                    .scalar() or 0
-
-                dados_estoque.append({
-                    'id': tipo.id,
-                    'tipo': tipo.nome,
-                    'estoque': quantidade_estoque,
-                    'vendido': qtd_vendida,
-                    'preco': float(tipo.preco)
-                })
-
-            return render_template('painel.html', produtos=dados_estoque)
+        if 'usuario' not in session:
+            return redirect(url_for('login_view'))
+        
+        tipos = TipoProduto.query.all()
+        dados_estoque = []
+        
+        for tipo in tipos:
+            quantidade_estoque = db.session.query(func.count(Produto.id)).filter_by(tipo_produto_id=tipo.id).scalar() or 0
+            qtd_vendida = db.session.query(func.sum(ItemVenda.quantidade))\
+                .filter(ItemVenda.tipo_produto_id == tipo.id)\
+                .scalar() or 0
+            
+            dados_estoque.append({
+                'id': tipo.id,
+                'tipo': tipo.nome,
+                'estoque': quantidade_estoque,
+                'vendido': qtd_vendida,
+                'preco': float(tipo.preco)
+            })
+        
+        return render_template('painel.html', produtos=dados_estoque)
     
     @app.route('/excluir-venda/<int:venda_id>', methods=['POST'])
     def excluir_venda(venda_id):
@@ -405,4 +380,3 @@ def register_routes(app):
         except Exception as e:
             db.session.rollback()
             return f"Erro ao excluir a venda: {str(e)}", 500
-
