@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from models import db, Categoria, TipoProduto, Produto, TipoPagamento, Venda, ItemVenda
 from routes import register_routes  # Importando a função que vai registrar as rotas
 from flask_sqlalchemy import SQLAlchemy
-from flask import render_template  # Importando a função que irá renderizar as páginas
+from flask import render_template,jsonify  # Importando a função que irá renderizar as páginas
 
 # Criação da instância Flask
 app = Flask(__name__)
@@ -23,3 +23,8 @@ register_routes(app)
 # Iniciando a aplicação
 if __name__ == '__main__':
     app.run(debug=True)
+
+#Função de teste de saúde
+@app.get("/health")
+def health():
+    return jsonify({"status": "ok"}), 200
