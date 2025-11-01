@@ -1,0 +1,104 @@
+/* ======= Reset geral ======= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ======= Estilo principal do formulário ======= */
+form {
+    background-color: rgba(46, 46, 77, 0.9);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;           /* ocupa quase toda a tela em desktop */
+    max-width: 600px;     /* mas não fica gigante */
+    margin: 2rem auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    color: #e4e4e4;
+    backdrop-filter: blur(6px);
+    transition: all 0.3s ease;
+}
+
+/* ======= Título ======= */
+h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #c7afff; /* tom roxo suave */
+    text-shadow: 0 0 3px rgba(199, 175, 255, 0.2);
+    font-weight: 600;
+    font-size: 1.8rem;
+}
+
+/* ======= Campos e botões ======= */
+input,
+select,
+textarea,
+button {
+    width: 100%;
+    padding: 0.7rem;
+    margin-bottom: 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+input,
+select,
+textarea {
+    background-color: #3a3a5c;
+    color: #f1f1f1;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    background-color: #464670;
+    transition: background 0.3s ease;
+}
+
+/* ======= Botão ======= */
+button {
+    background-color: #6d5bd0;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #7c6be3;
+    transform: scale(1.03);
+}
+
+/* ======= Mensagens ======= */
+.erro {
+    color: #ff6b6b;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.sucesso {
+    color: #9fffa9;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* ======= Responsividade ======= */
+@media (max-width: 600px) {
+    form {
+        padding: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        font-size: 0.95rem;
+        padding: 0.6rem;
+    }
+}

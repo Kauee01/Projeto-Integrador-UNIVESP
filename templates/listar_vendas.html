@@ -5,63 +5,7 @@
 {% block title %}Lista de Vendas Realizadas{% endblock %}
 
 {% block content %}
-<style>
-    h2 {
-        text-align: center;
-        margin-bottom: 2rem;
-        text-shadow: 0 0 10px #8a2be2;
-    }
-
-    table {
-        border-collapse: collapse;
-        width: 80%;
-        margin: 0 auto;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
-    }
-
-    th, td {
-        padding: 1rem;
-        text-align: center;
-    }
-
-    th {
-        background-color: rgba(138, 43, 226, 0.3);
-    }
-
-    tr:nth-child(even) {
-        background-color: rgba(255, 255, 255, 0.03);
-    }
-
-    tr:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    ul {
-        list-style-type: none;
-        padding-left: 0;
-    }
-
-    li {
-        margin-bottom: 0.3rem;
-    }
-
-    .excluir-btn {
-        background-color: #ff4d4d;
-        color: white;
-        padding: 5px 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    .excluir-btn:hover {
-        background-color: #e60000;
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/listar_vendas.css') }}">
 
 <h2>Historico de Vendas Realizadas</h2>
 

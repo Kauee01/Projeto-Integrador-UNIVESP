@@ -1,0 +1,185 @@
+/* ======= Variáveis Globais ======= */
+:root {
+    --color-bg: linear-gradient(120deg, #0f0c29, #302b63, #24243e);
+    --color-card-bg: rgba(255, 255, 255, 0.08);
+    --color-card-hover: rgba(255, 255, 255, 0.15);
+    --color-text-primary: #b58eff; /* roxo suave */
+    --color-shadow: rgba(0, 0, 0, 0.4);
+    --border-radius: 12px;
+    --transition-speed: 0.3s;
+    --padding-container: 2rem;
+}
+
+/* ======= Reset e Body ======= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    background: var(--color-bg);
+    color: #fff;
+    min-height: 100vh;
+    padding: var(--padding-container);
+}
+
+/* ======= Títulos Globais ======= */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text-primary);
+    text-shadow:
+        0 0 1px var(--color-text-primary),
+        0 0 3px rgba(181, 142, 255, 0.7),
+        0 0 6px rgba(181, 142, 255, 0.5);
+}
+
+/* ======= Cabeçalho e Navegação ======= */
+header {
+    background-color: rgba(0, 0, 0, 0.35);
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.2);
+}
+
+header h1 {
+    font-size: 1.5rem;
+    color: #c9a9ff;
+    text-shadow:
+        0 0 2px rgba(138, 43, 226, 0.4),
+        0 0 4px rgba(138, 43, 226, 0.3);
+}
+
+/* ======= Navegação ======= */
+nav {
+    display: flex;
+    align-items: center;
+}
+
+nav a {
+    margin-left: 1rem;
+    text-decoration: none;
+    color: #fff;
+    background-color: #3b3b5e;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: background var(--transition-speed) ease;
+    position: relative;
+}
+
+nav a:hover {
+    background-color: #666;
+}
+
+/* ======= Submenu ======= */
+.menu-vendas {
+    position: relative;
+}
+
+.menu-vendas:hover .submenu {
+    display: block;
+}
+
+.submenu {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: #333;
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    min-width: 180px;
+    z-index: 1000;
+}
+
+.submenu a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: white;
+    text-decoration: none;
+}
+
+.submenu a:hover {
+    background-color: #555;
+}
+
+/* ======= Container ======= */
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* ======= Tabelas ======= */
+table {
+    border-collapse: collapse;
+    background: var(--color-card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 0 15px var(--color-shadow);
+    width: 80%;
+    margin: 0 auto;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed), background var(--transition-speed);
+}
+
+table:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 20px var(--color-shadow);
+    background: var(--color-card-hover);
+}
+
+th, td {
+    padding: 1rem;
+    text-align: center;
+}
+
+th {
+    background-color: rgba(138, 43, 226, 0.3);
+}
+
+tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+tr:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ======= Ações (Editar / Excluir) ======= */
+a.editar {
+    color: lightblue;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-right: 10px;
+}
+
+form.excluir {
+    display: inline;
+}
+
+form.excluir button {
+    color: red;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* ======= Responsividade ======= */
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+    }
+
+    table {
+        font-size: 0.9rem;
+    }
+}

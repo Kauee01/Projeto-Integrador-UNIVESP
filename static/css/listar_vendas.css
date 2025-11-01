@@ -1,0 +1,104 @@
+/* static/css/tabelas.css */
+
+/* ======= Título principal ======= */
+h2 {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    font-size: 2rem;
+    color: #bca8ff; /* roxo suave */
+    text-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
+    font-weight: 600;
+}
+
+/* ======= Estilo da tabela ======= */
+table {
+    border-collapse: collapse;
+    width: 90%; /* maior que antes */
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Cabeçalho e células */
+th, td {
+    padding: 1.2rem;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* Cabeçalho da tabela */
+th {
+    background-color: rgba(138, 43, 226, 0.25);
+}
+
+/* Linhas alternadas */
+tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Efeito hover nas linhas */
+tr:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: scale(1.01);
+    transition: all 0.3s ease;
+}
+
+/* Lista de produtos dentro da tabela */
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+li {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Botão de exclusão */
+.excluir-btn {
+    background-color: #ff4d4d;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.excluir-btn:hover {
+    background-color: #e60000;
+    transform: scale(1.05);
+}
+
+/* ======= Responsividade ======= */
+@media (max-width: 600px) {
+    table {
+        width: 100%;
+    }
+
+    th, td {
+        padding: 0.9rem;
+        font-size: 0.9rem;
+    }
+
+    li {
+        font-size: 0.9rem;
+    }
+
+    h2 {
+        font-size: 1.6rem;
+        margin-bottom: 1.8rem;
+    }
+
+    .excluir-btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+}
