@@ -1,0 +1,156 @@
+# ===============================================
+# GUIA PRÁTICO: COLE DIRETO NO PUTTY
+# ===============================================
+
+# OPÇÃO 1: Baixar e executar direto (MAIS FÁCIL)
+# ===================================================
+
+# Cole isto tudo de uma vez no PuTTY:
+
+cd /tmp && wget -O setup.sh https://raw.githubusercontent.com/Kauee01/Projeto-Integrador-UNIVESP/master/COLE-NO-PUTTY.sh && bash setup.sh
+
+# Pronto! O script vai rodar sozinho.
+
+# ===============================================
+
+# OPÇÃO 2: Se não conseguir com wget (sem internet)
+# ===================================================
+
+# Se wget não funcionar, use curl:
+
+cd /tmp && curl -O https://raw.githubusercontent.com/Kauee01/Projeto-Integrador-UNIVESP/master/COLE-NO-PUTTY.sh && bash setup.sh
+
+# ===============================================
+
+# OPÇÃO 3: Copiar + Colar Manual (Se nada acima funcionar)
+# ===================================================
+
+# 1. Crie um arquivo vazio:
+touch /home/seu_usuario/setup.sh
+
+# 2. Abra o arquivo com nano:
+nano /home/seu_usuario/setup.sh
+
+# 3. Cole TODO O CONTEÚDO de COLE-NO-PUTTY.sh (do seu repositório no Windows)
+#    No PuTTY: clique com botão direito e escolha "Paste"
+#    No nano: Ctrl+Shift+V (ou botão direito do mouse)
+
+# 4. Salve (Ctrl+O, Enter, Ctrl+X)
+
+# 5. Torne executável:
+chmod +x /home/seu_usuario/setup.sh
+
+# 6. Execute:
+bash /home/seu_usuario/setup.sh
+
+# ===============================================
+
+# OPÇÃO 4: Passo-a-passo manual (Se preferir controle total)
+# ===================================================
+
+# Você mencionou que já fez até pip install gunicorn
+# Então comece a partir daqui:
+
+# (Assumindo que você está em /var/www/Projeto-Integrador-UNIVESP com venv ativado)
+
+# Se não tem venv ativado, ative:
+source venv/bin/activate
+
+# Crie requirements-linux.txt (remove pywin32):
+grep -v -i '^pywin32' requirements.txt > requirements-linux.txt
+
+# Instale sem o pywin32:
+pip install -r requirements-linux.txt
+
+# Continuar com os passos do script (database, supervisor, nginx):
+
+# === 5. Criar banco de dados ===
+python3 << 'EOF'
+from app import app, db
+with app.app_context():
+    db.create_all()
+    print("Banco criado!")
+EOF
+
+# === 6. Desativar debug ===
+cp app.py app.py.backup
+sed -i 's/app\.run(debug=True)/app.run(debug=False)/g' app.py
+
+# === 7. Configurar Supervisor ===
+sudo tee /etc/supervisor/conf.d/flask-app.conf > /dev/null <<'CONF'
+[program:flask-app]
+directory=/var/www/Projeto-Integrador-UNIVESP
+command=/var/www/Projeto-Integrador-UNIVESP/venv/bin/gunicorn --workers 4 --bind 127.0.0.1:8000 app:app
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/flask-app.err.log
+stdout_logfile=/var/log/flask-app.out.log
+user=www-data
+CONF
+
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start flask-app
+
+# === 8. Configurar Nginx ===
+sudo tee /etc/nginx/sites-available/flask-app > /dev/null <<'NGINX'
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /static {
+        alias /var/www/Projeto-Integrador-UNIVESP/static;
+        expires 30d;
+    }
+}
+NGINX
+
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/flask-app /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl enable nginx
+
+# === 9. Permissões ===
+sudo chown -R www-data:www-data /var/www/Projeto-Integrador-UNIVESP
+sudo chmod -R 755 /var/www/Projeto-Integrador-UNIVESP
+sudo chmod -R 775 /var/www/Projeto-Integrador-UNIVESP/instance
+
+# === 10. Firewall ===
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw --force enable
+
+# === Testar ===
+curl http://127.0.0.1/health
+
+# ===============================================
+# RESUMO DE COMANDOS DE TESTE
+# ===============================================
+
+# Verificar se está rodando:
+sudo supervisorctl status flask-app
+
+# Ver logs:
+sudo tail -n 50 /var/log/flask-app.out.log
+sudo tail -n 50 /var/log/flask-app.err.log
+sudo tail -n 50 /var/log/nginx/error.log
+
+# Testar health check:
+curl -i http://127.0.0.1/health
+curl -i http://localhost/health
+
+# Acessar pelo IP da VM (do seu PC):
+# Abra o navegador e vá para: http://IP_DA_VM/health
+
+# Reiniciar se necessário:
+sudo supervisorctl restart flask-app
+sudo systemctl restart nginx
