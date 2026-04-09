@@ -1,0 +1,62 @@
+/* =========================================================
+   DASHBOARD.CSS — Estilos complementares do Dashboard Admin
+   Padrão visual Bootstrap + tema branco/amarelo
+   ========================================================= */
+
+/* Cards de indicadores — números em destaque */
+.dashboard-metric-card .display-6 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+/* Hover sutil nos cards de métrica */
+.dashboard-metric-card:hover {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+    transition: box-shadow .2s ease;
+}
+
+/* Container do gráfico Chart.js */
+.chart-wrap {
+    position: relative;
+    min-height: 320px;
+}
+
+/* Lista de produtos no painel de detalhes */
+#detalhesCategoria ul {
+    padding-left: 1rem;
+}
+
+#detalhesCategoria li {
+    margin-bottom: 0.35rem;
+}
+
+/* Responsividade — Tablets */
+@media (max-width: 768px) {
+    .dashboard-metric-card .display-6 {
+        font-size: 1.5rem;
+    }
+
+    .chart-wrap {
+        min-height: 260px;
+    }
+}
+
+/* Responsividade — Celulares */
+@media (max-width: 576px) {
+    .dashboard-metric-card .display-6 {
+        font-size: 1.3rem;
+    }
+
+    .dashboard-metric-card .card-body h6 {
+        font-size: 0.8rem;
+    }
+
+    .chart-wrap {
+        min-height: 220px;
+    }
+
+    .card-title {
+        font-size: 1rem;
+    }
+}

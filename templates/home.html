@@ -1,27 +1,70 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    home.html — Página inicial (Home) do sistema.
+
+    Exibe uma saudação ao usuário logado e três cards de resumo:
+      1. Total em Estoque — soma das quantidades de todos os produtos
+      2. Total Vendido — soma das unidades vendidas
+      3. Vendas Realizadas (R$) — valor monetário total das vendas
+
+    Variáveis recebidas do backend (routes.py → home):
+      - usuario: nome do usuário logado (string)
+      - total_estoque: quantidade total de itens em estoque (int)
+      - total_vendido: quantidade total de itens vendidos (int)
+      - valor_total: soma em reais de todas as vendas (float formatado)
+-->
 {% extends 'base.html' %}
 
 {% block title %}Home{% endblock %}
 
+{% block styles %}
+<!-- CSS específico da página Home -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/Home.css') }}">
+<!-- Saudação ao usuário logado -->
+<h1 class="mb-4">Bem-vindo, {{ usuario }}!</h1>
 
-<h1>Bem-vindo, {{ usuario }}!</h1>
-
-<div class="dashboard">
-    <div class="card">
-        <h2>Total em Estoque</h2>
-        <p>{{ total_estoque }}</p>
+<!-- Cards de resumo — layout responsivo:
+     - Mobile: 2 colunas (col-6)
+     - Tablet+: 3 colunas (col-md-4)
+     - Card "Vendas Realizadas" ocupa largura total no mobile (col-12) -->
+<div class="row g-3">
+    <!-- Card: Total em Estoque -->
+    <div class="col-6 col-md-4">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Total em Estoque</h5>
+                <p class="display-6 fw-bold text-dark">{{ total_estoque }}</p>
+            </div>
+            <div class="card-footer bg-warning bg-opacity-25 border-0">
+                <i class="bi bi-archive fs-4 text-warning"></i>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h2>Total Vendido</h2>
-        <p>{{ total_vendido }}</p>
+    <!-- Card: Total Vendido -->
+    <div class="col-6 col-md-4">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Total Vendido</h5>
+                <p class="display-6 fw-bold text-dark">{{ total_vendido }}</p>
+            </div>
+            <div class="card-footer bg-warning bg-opacity-25 border-0">
+                <i class="bi bi-cart-check fs-4 text-warning"></i>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h2>Vendas Realizadas (R$)</h2>
-        <p>R$ {{ valor_total }}</p>
+    <!-- Card: Vendas Realizadas (R$) -->
+    <div class="col-12 col-md-4">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Vendas Realizadas (R$)</h5>
+                <p class="display-6 fw-bold text-dark">R$ {{ valor_total }}</p>
+            </div>
+            <div class="card-footer bg-warning bg-opacity-25 border-0">
+                <i class="bi bi-currency-dollar fs-4 text-warning"></i>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
-</html>

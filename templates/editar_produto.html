@@ -1,36 +1,60 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    editar_produto.html — Página de edição de preço do produto.
+
+    Permite alterar o preço de um produto existente.
+    Exige confirmação por senha antes de salvar.
+    Envia via POST para /editar-tipo-produto/<id>.
+
+    Variáveis recebidas do backend (routes.py → editar_tipo_produto):
+      - tipo_produto: objeto TipoProduto com id, nome, preco
+      - erro: mensagem de erro (string ou None)
+      - sucesso: mensagem de sucesso (string ou None)
+-->
 {% extends 'base.html' %}
 
 {% block title %}Editar Produto{% endblock %}
 
-{% block content %}
+{% block styles %}
+<!-- CSS específico da página de edição de produto -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/editar_produto.css') }}">
-
-<form method="POST">
-    <h2>Editar Produto</h2>
-
-    {% if erro %}
-    <div class="mensagem erro">{{ erro }}</div>
-    {% endif %}
-
-    {% if sucesso %}
-    <div class="mensagem sucesso">{{ sucesso }}</div>
-    {% endif %}
-
-    <!-- Preço -->
-    <label>Preço (R$):</label>
-    <p class="atual-info">Preço atual: R$ {{ tipo_produto.preco or "Indefinido" }}</p>
-    <input type="number" name="preco" step="0.01" placeholder="Novo preço (opcional)" value="{{ tipo_produto.preco }}">
-
-    <!-- Campo de senha para confirmação -->
-    <div class="senha-container">
-        <label for="senha">Digite sua senha para confirmar:</label>
-        <input type="password" name="senha" id="senha" required>
-    </div>
-
-    <button type="submit">Salvar</button>
-    <a href="/painel">Cancelar</a>
-</form>
 {% endblock %}
-</html>
+
+{% block content %}
+<!-- Container centralizado: col-md-6 em tablets, col-lg-5 em desktop -->
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <!-- Título da página -->
+                <h2 class="text-center mb-4">Editar Produto</h2>
+
+                <!-- Mensagens de feedback: erro (vermelho) ou sucesso (verde) -->
+                {% if erro %}
+                <div class="alert alert-danger text-center" role="alert">{{ erro }}</div>
+                {% endif %}
+                {% if sucesso %}
+                <div class="alert alert-success text-center" role="alert">{{ sucesso }}</div>
+                {% endif %}
+
+                <!-- Formulário de edição — envia para a mesma rota via POST -->
+                <form method="POST">
+                    <!-- Campo: Novo preço — exibe o preço atual como referência -->
+                    <div class="mb-3">
+                        <label for="preco" class="form-label">Preço (R$)</label>
+                        <p class="text-muted small mb-1">Preço atual: R$ {{ tipo_produto.preco or "Indefinido" }}</p>
+                        <input type="number" class="form-control" id="preco" name="preco" step="0.01" placeholder="Novo preço (opcional)" value="{{ tipo_produto.preco }}">
+                    </div>
+                    <!-- Campo: Senha de confirmação (obrigatória para segurança) -->
+                    <div class="mb-3">
+                        <label for="senha" class="form-label">Senha de confirmação</label>
+                        <input type="password" class="form-control" id="senha" name="senha" required>
+                    </div>
+                    <!-- Botões: Salvar (amarelo) e Cancelar (volta ao painel) -->
+                    <button type="submit" class="btn btn-warning w-100 fw-bold mb-2">Salvar</button>
+                    <a href="/painel" class="btn btn-outline-secondary w-100">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

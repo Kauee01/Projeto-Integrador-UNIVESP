@@ -1,48 +1,87 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    inventario_estoque.html — Página de gerenciamento de estoque.
+
+    Permite adicionar ou remover unidades do estoque de qualquer produto.
+    O formulário possui duas seções (adicionar e remover) em um único POST.
+    O backend processa a seção que tiver um produto selecionado.
+
+    Variáveis recebidas do backend (routes.py → inventario_estoque):
+      - produtos: lista de objetos Produto (id, nome) para os <select>
+      - erro: mensagem de erro (string ou None)
+      - sucesso: mensagem de sucesso (string ou None)
+-->
 {% extends 'base.html' %}
 
 {% block title %}Inventário de Estoque{% endblock %}
 
-{% block content %}
+{% block styles %}
+<!-- CSS específico da página de inventário -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/inventario_estoque.css') }}">
-
-<form method="POST">
-    <h2>Inventário de Estoque</h2>
-
-    {% if erro %}
-    <p class="erro">{{ erro }}</p>
-    {% elif sucesso %}
-    <p class="sucesso">{{ sucesso }}</p>
-    {% endif %}
-
-    <!-- Adicionar ao Estoque -->
-    <label for="produto_id_adicionar" style="font-weight: bold; color: #fff;">Produto para Adicionar:</label>
-    <select name="produto_id_adicionar">
-        <option value="">Selecione um produto</option>
-        {% for produto in produtos %}
-        <option value="{{ produto.id }}">{{ produto.nome }}</option>
-        {% endfor %}
-    </select>
-
-    <label for="quantidade_adicionar" style="font-weight: bold; color: #fff;">Quantidade a Adicionar:</label>
-    <input type="number" name="quantidade_adicionar" min="1" placeholder="Quantidade a adicionar">
-
-    <!-- Remover do Estoque -->
-    <label for="produto_id_remover" style="font-weight: bold; color: #fff;">Produto para Remover:</label>
-    <select name="produto_id_remover">
-        <option value="">Selecione um produto</option>
-        {% for produto in produtos %}
-        <option value="{{ produto.id }}">{{ produto.nome }}</option>
-        {% endfor %}
-    </select>
-
-    <label for="quantidade_remover" style="font-weight: bold; color: #fff;">Quantidade a Remover:</label>
-    <input type="number" name="quantidade_remover" min="1" placeholder="Quantidade a remover">
-
-    <!-- Botão de Envio -->
-    <button type="submit">Atualizar Estoque</button>
-</form>
-
 {% endblock %}
-</html>
+
+{% block content %}
+<!-- Container centralizado: col-md-7 em tablets, col-lg-6 em desktop -->
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <!-- Título da página -->
+                <h2 class="text-center mb-4">Inventário de Estoque</h2>
+
+                <!-- Mensagens de feedback: erro (vermelho) ou sucesso (verde) -->
+                {% if erro %}
+                <div class="alert alert-danger text-center" role="alert">{{ erro }}</div>
+                {% elif sucesso %}
+                <div class="alert alert-success text-center" role="alert">{{ sucesso }}</div>
+                {% endif %}
+
+                <!-- Formulário único — o backend identifica a operação
+                     verificando qual seção (adicionar ou remover) foi preenchida -->
+                <form method="POST">
+
+                    <!-- ========== SEÇÃO: ADICIONAR AO ESTOQUE ========== -->
+                    <h5 class="text-warning mb-3"><i class="bi bi-plus-circle me-1"></i>Adicionar ao Estoque</h5>
+                    <!-- Produto a adicionar -->
+                    <div class="mb-3">
+                        <label for="produto_id_adicionar" class="form-label fw-bold">Produto</label>
+                        <select class="form-select" name="produto_id_adicionar" id="produto_id_adicionar">
+                            <option value="">Selecione um produto</option>
+                            {% for produto in produtos %}
+                            <option value="{{ produto.id }}">{{ produto.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- Quantidade a adicionar -->
+                    <div class="mb-4">
+                        <label for="quantidade_adicionar" class="form-label fw-bold">Quantidade a Adicionar</label>
+                        <input type="number" class="form-control" name="quantidade_adicionar" id="quantidade_adicionar" min="1" placeholder="Ex: 10">
+                    </div>
+
+                    <hr>
+
+                    <!-- ========== SEÇÃO: REMOVER DO ESTOQUE ========== -->
+                    <h5 class="text-danger mb-3"><i class="bi bi-dash-circle me-1"></i>Remover do Estoque</h5>
+                    <!-- Produto a remover -->
+                    <div class="mb-3">
+                        <label for="produto_id_remover" class="form-label fw-bold">Produto</label>
+                        <select class="form-select" name="produto_id_remover" id="produto_id_remover">
+                            <option value="">Selecione um produto</option>
+                            {% for produto in produtos %}
+                            <option value="{{ produto.id }}">{{ produto.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- Quantidade a remover -->
+                    <div class="mb-4">
+                        <label for="quantidade_remover" class="form-label fw-bold">Quantidade a Remover</label>
+                        <input type="number" class="form-control" name="quantidade_remover" id="quantidade_remover" min="1" placeholder="Ex: 5">
+                    </div>
+
+                    <!-- Botão de submissão — processa adicionar OU remover -->
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Atualizar Estoque</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

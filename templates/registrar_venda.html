@@ -1,73 +1,106 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    registrar_venda.html — Página de registro de nova venda.
+
+    Exibe uma tabela com todos os produtos disponíveis (com DataTables
+    para busca e ordenação). O usuário preenche a quantidade desejada
+    de cada produto e o subtotal é calculado em tempo real via JS.
+    O registro é enviado por fetch (POST JSON) através de registrar_venda.js.
+
+    Variáveis recebidas do backend (routes.py → registrar_venda):
+      - produtos: lista de objetos Produto (id, nome, preco, quantidade)
+      - pagamentos: lista de objetos TipoPagamento (id, nome)
+      - total_geral: valor inicial do total (normalmente 0.00)
+
+    Dependências externas:
+      - jQuery 3.7.0 + DataTables 1.13.6 (busca na tabela)
+      - registrar_venda.js (cálculo de totais e envio da venda)
+-->
 {% extends 'base.html' %}
 
 {% block title %}Registrar Venda{% endblock %}
 
-{% block content %}
-<!-- Importando o DataTables CSS e JS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
+{% block styles %}
+<!-- DataTables CSS — tema Bootstrap 5 -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<!-- CSS específico da página de vendas (glow + #total-geral) -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/registrar_venda.css') }}">
-<!-- Importando DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+{% endblock %}
 
-<h2>Registrar Nova Venda</h2>
+{% block content %}
+<!-- Título da página -->
+<h2 class="mb-4">Registrar Nova Venda</h2>
 
 <form id="form-venda">
-    <label for="tipo_pagamento">Tipo de Pagamento</label>
-    <select name="tipo_pagamento_id" id="tipo_pagamento" required>
-        <option value="">Selecione...</option>
-        {% for pagamento in pagamentos %}
-            <option value="{{ pagamento.id }}">{{ pagamento.nome }}</option>
-        {% endfor %}
-    </select>
+    <!-- Seletor de tipo de pagamento (Pix, Dinheiro, Cartão, etc.) -->
+    <div class="mb-3">
+        <label for="tipo_pagamento" class="form-label fw-bold">Tipo de Pagamento</label>
+        <select class="form-select" name="tipo_pagamento_id" id="tipo_pagamento" required>
+            <option value="">Selecione...</option>
+            {% for pagamento in pagamentos %}
+                <option value="{{ pagamento.id }}">{{ pagamento.nome }}</option>
+            {% endfor %}
+        </select>
+    </div>
 
-    <label for="itens">Itens da Venda (Selecione)</label>
+    <!-- Tabela de produtos disponíveis para inclusão na venda -->
+    <label class="form-label fw-bold mb-2">Itens da Venda</label>
     {% if produtos %}
-        <table id="produto-tabela" class="display">
+    <div class="table-responsive">
+        <table id="produto-tabela" class="table table-hover table-bordered align-middle">
             <thead>
                 <tr>
                     <th>Nome do Produto</th>
                     <th>Preço</th>
-                    <th>Estoque</th>
-                    <th>Quantidade</th>
+                    <!-- Coluna "Estoque" oculta em telas < sm (576px) -->
+                    <th class="d-none d-sm-table-cell">Estoque</th>
+                    <th>Qtd</th>
                     <th>Subtotal</th>
                 </tr>
             </thead>
             <tbody>
+                <!-- Itera sobre todos os produtos com estoque disponível -->
                 {% for produto in produtos %}
-                    <tr data-produto-id="{{ produto.id }}">
-                        <td>{{ produto.nome }}</td>
-                        <td>R$ {{ "%.2f"|format(produto.preco) }}</td>
-                        <td>{{ produto.quantidade }}</td>
-                        <td>
-                            <input type="number" class="quantidade-input" data-produto-id="{{ produto.id }}" placeholder="Quantidade" min="0" value="0" max="{{ produto.quantidade }}">
-                        </td>
-                        <td>
-                            <span class="produto-total" id="total_{{ produto.id }}">R$ 0.00</span>
-                        </td>
-                    </tr>
+                <tr data-produto-id="{{ produto.id }}">
+                    <td>{{ produto.nome }}</td>
+                    <td>R$ {{ "%.2f"|format(produto.preco) }}</td>
+                    <td class="d-none d-sm-table-cell">{{ produto.quantidade }}</td>
+                    <td>
+                        <!-- Input de quantidade: max limitado ao estoque disponível.
+                             A classe .quantidade-input é usada pelo JS para calcular totais -->
+                        <input type="number" class="form-control form-control-sm quantidade-input"
+                               data-produto-id="{{ produto.id }}" min="0" value="0"
+                               max="{{ produto.quantidade }}" style="max-width: 80px; min-width: 55px;">
+                    </td>
+                    <td>
+                        <!-- Subtotal calculado em tempo real pelo JS -->
+                        <span class="produto-total fw-bold" id="total_{{ produto.id }}">R$ 0.00</span>
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
     {% else %}
-        <p>Não há produtos cadastrados no momento.</p>
+    <!-- Mensagem quando não há produtos cadastrados -->
+    <div class="alert alert-warning">Não há produtos cadastrados no momento.</div>
     {% endif %}
 
-    <div id="total-geral" class="produto-total">
+    <!-- Total geral da venda — atualizado pelo JS -->
+    <div id="total-geral" class="fs-5 fw-bold text-end my-3">
         Total: R$ {{ "%.2f"|format(total_geral) }}
     </div>
 
-    <button type="button" id="registrar-venda-btn">Registrar Venda</button>
+    <!-- Botão de registro — dispara o fetch POST via JS -->
+    <button type="button" id="registrar-venda-btn" class="btn btn-warning w-100 fw-bold">Registrar Venda</button>
 
-    <p class="erro" id="mensagem-erro" style="display: none;"></p>
+    <!-- Área de mensagem de erro (manipulada via JS, oculta por padrão) -->
+    <div class="alert alert-danger mt-3 text-center" id="mensagem-erro" style="display: none;" role="alert"></div>
 </form>
+{% endblock %}
 
+{% block scripts %}
+<!-- Mapa de preços em JSON — consumido pelo registrar_venda.js
+     para calcular subtotais sem requisição ao servidor -->
 <script id="dados-precos" type="application/json">
     {
     {% for produto in produtos %}
@@ -76,22 +109,27 @@
     }
 </script>
 
+<!-- jQuery (dependência do DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- DataTables: core + integração Bootstrap 5 -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Script principal: cálculo de totais e envio da venda via fetch -->
 <script src="{{ url_for('static', filename='js/registrar_venda.js') }}"></script>
 
-<!-- Ativa o DataTables com barra de pesquisa -->
+<!-- Inicializa DataTables na tabela de produtos com busca habilitada -->
 <script>
     $(document).ready(function () {
         $('#produto-tabela').DataTable({
-            searching: true, // Ativa a barra de busca
-            paging: false, // Desativa a paginação
-            info: false, // Desativa as informações da página
+            searching: true,   // Campo de busca habilitado
+            paging: false,     // Sem paginação
+            info: false,       // Sem "Mostrando X de Y"
             language: {
-                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" // Tradução em português
+                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
             },
-            autoWidth: false // Evita o corte das colunas
+            autoWidth: false   // Desativa largura automática das colunas
         });
     });
 </script>
-
 {% endblock %}
-</html>

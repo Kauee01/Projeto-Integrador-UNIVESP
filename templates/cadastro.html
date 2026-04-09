@@ -1,33 +1,61 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    cadastro.html — Página de cadastro de novo usuário.
+
+    Formulário simples com campos de nome de usuário e senha.
+    Envia via POST para a rota /cadastrar-usuario.
+    Após cadastro bem-sucedido, redireciona ao login com flash message.
+
+    Variáveis recebidas do backend (routes.py → cadastrar_usuario):
+      - erro: mensagem de erro (ex: "Usuário já existe") ou None
+      - sucesso: mensagem de sucesso ou None
+-->
 {% extends 'base.html' %}
 
 {% block title %}Cadastrar Usuário{% endblock %}
 
-{% block content %}
-
- <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastrar_usuario.css') }}">
- 
-<form method="POST">
-    <h2>Criar Conta</h2>
-
-    <label>Usuário</label>
-    <input type="text" name="username" required>
-
-    <label>Senha</label>
-    <input type="password" name="senha" required>
-
-    <button type="submit">Cadastrar</button>
-
-    {% if erro %}
-        <p style="color: red;">{{ erro }}</p>
-    {% elif sucesso %}
-        <p style="color: lightgreen;">{{ sucesso }}</p>
-    {% endif %}
-
-    <p>
-        <a href="/" style="color: lightblue;">Voltar ao login</a>
-    </p>
-</form>
+{% block styles %}
+<!-- CSS específico da página de Cadastro -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cadastrar_usuario.css') }}">
 {% endblock %}
-</html>
+
+{% block content %}
+<!-- Container centralizado: col-md-5 em tablets, col-lg-4 em desktop -->
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <!-- Título da página -->
+                <h2 class="text-center mb-4">Criar Conta</h2>
+
+                <!-- Mensagens de feedback: erro (vermelho) ou sucesso (verde) -->
+                {% if erro %}
+                <div class="alert alert-danger text-center" role="alert">{{ erro }}</div>
+                {% elif sucesso %}
+                <div class="alert alert-success text-center" role="alert">{{ sucesso }}</div>
+                {% endif %}
+
+                <!-- Formulário de cadastro — envia para a mesma rota via POST -->
+                <form method="POST">
+                    <!-- Campo: nome de usuário (será o login) -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Usuário</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <!-- Campo: senha (armazenada com hash via Werkzeug) -->
+                    <div class="mb-3">
+                        <label for="senha" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="senha" name="senha" required>
+                    </div>
+                    <!-- Botão de submissão — cor amarela (btn-warning) -->
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Cadastrar</button>
+                </form>
+
+                <!-- Link de volta para a tela de login -->
+                <p class="text-center mt-3 mb-0">
+                    <a href="/" class="text-decoration-none text-warning">Voltar ao login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,38 +1,61 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    adicionar_estoque.html — Página de adição rápida ao estoque.
+
+    Formulário simples com seletor de produto e campo de quantidade.
+    Envia via POST para adicionar unidades ao estoque do produto selecionado.
+
+    Variáveis recebidas do backend:
+      - produtos: lista de objetos Produto (id, nome) para o <select>
+      - erro: mensagem de erro (string ou None)
+      - sucesso: mensagem de sucesso (string ou None)
+-->
 {% extends 'base.html' %}
 
 {% block title %}Adicionar ao Estoque{% endblock %}
 
-{% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='static/css/adicionar_estoque.css') }}">
-
-
-<form method="POST">
-    <h2>Adicionar ao Estoque</h2>
-
-    {% if erro %}
-    <p class="erro">{{ erro }}</p>
-    {% elif sucesso %}
-    <p style="color: lightgreen; font-weight: bold; text-align: center;">{{ sucesso }}</p>
-    {% endif %}
-
-    <!-- Produto -->
-    <label for="produto_id" style="font-weight: bold; color: #fff;">Produto:</label>
-    <select name="produto_id" required style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none;">
-        <option value="">Selecione um produto</option>
-        {% for produto in produtos %}
-        <option value="{{ produto.id }}">{{ produto.nome }}</option>
-        {% endfor %}
-    </select>
-
-    <!-- Quantidade a Adicionar -->
-    <label for="quantidade" style="font-weight: bold; color: #fff;">Quantidade a adicionar:</label>
-    <input type="number" name="quantidade" min="1" required placeholder="Quantidade a adicionar" style="padding: 0.5rem; margin-bottom: 1rem; border-radius: 5px; border: none;">
-
-    <!-- Botão de Envio -->
-    <button type="submit">Adicionar ao Estoque</button>
-</form>
-
+{% block styles %}
+<!-- CSS específico da página de adição ao estoque -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/adicionar_estoque.css') }}">
 {% endblock %}
-</html>
+
+{% block content %}
+<!-- Container centralizado: col-md-6 em tablets, col-lg-5 em desktop -->
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <!-- Título da página -->
+                <h2 class="text-center mb-4">Adicionar ao Estoque</h2>
+
+                <!-- Mensagens de feedback: erro (vermelho) ou sucesso (verde) -->
+                {% if erro %}
+                <div class="alert alert-danger text-center" role="alert">{{ erro }}</div>
+                {% elif sucesso %}
+                <div class="alert alert-success text-center" role="alert">{{ sucesso }}</div>
+                {% endif %}
+
+                <!-- Formulário de adição — envia para a mesma rota via POST -->
+                <form method="POST">
+                    <!-- Seletor de produto (populado com dados do banco) -->
+                    <div class="mb-3">
+                        <label for="produto_id" class="form-label fw-bold">Produto</label>
+                        <select class="form-select" name="produto_id" id="produto_id" required>
+                            <option value="">Selecione um produto</option>
+                            {% for produto in produtos %}
+                            <option value="{{ produto.id }}">{{ produto.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- Quantidade a adicionar (mínimo 1) -->
+                    <div class="mb-3">
+                        <label for="quantidade" class="form-label fw-bold">Quantidade a adicionar</label>
+                        <input type="number" class="form-control" name="quantidade" id="quantidade" min="1" required placeholder="Ex: 10">
+                    </div>
+                    <!-- Botão de submissão — cor amarela (btn-warning) -->
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Adicionar ao Estoque</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

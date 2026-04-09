@@ -1,145 +1,27 @@
-/* ======= Estilo Base ======= */
+/* =========================================================
+   PAINEL.CSS — Estilos complementares do Painel de Estoque
+   Complementa o Bootstrap 5 + DataTables + base.css
+   ========================================================= */
 
-body {
-    font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(120deg, #141429, #252550, #1b1b38);
-    color: #e4e4e4;
-    min-height: 100vh;
-    padding: 2rem;
+/* Ajuste do campo de busca do DataTables para o tema branco/amarelo */
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
 }
 
-/* ======= Header e Navbar ======= */
-header {
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    padding: 1rem 2rem;
-    border-radius: 12px;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Foco no campo de busca — glow amarelo */
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+    outline: none;
 }
 
-header h1 {
-    font-size: 1.5rem;
-    color: #b18cff; /* tom suave de roxo */
-    text-shadow: 0 0 4px rgba(177, 140, 255, 0.25);
+/* Linhas de divisão visíveis entre as linhas da tabela */
+#estoque tbody tr {
+    border-bottom: 1px solid #dee2e6;
 }
 
-nav {
-    display: flex;
-    align-items: center;
-}
-
-nav a {
-    margin-left: 1rem;
-    text-decoration: none;
-    color: #e4e4e4;
-    background-color: #3b3b5e;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    transition: background 0.3s ease;
-}
-
-nav a:hover {
-    background-color: #565689;
-}
-
-/* ======= Submenu ======= */
-.menu-vendas {
-    position: relative;
-}
-
-.menu-vendas:hover .submenu {
-    display: block;
-}
-
-.submenu {
-    display: none;
-    position: absolute;
-    top: 110%;
-    left: 0;
-    background-color: #2f2f4a;
-    border-radius: 8px;
-    padding: 0.5rem 0;
-    min-width: 180px;
-    z-index: 1000;
-}
-
-.submenu a {
-    display: block;
-    padding: 0.5rem 1rem;
-    color: #fff;
-    text-decoration: none;
-}
-
-.submenu a:hover {
-    background-color: #44446b;
-}
-
-/* ======= Container Principal ======= */
-.container {
-    max-width: 960px;
-    margin: 0 auto;
-    clear: both;
-}
-
-/* ======= H1 do Painel ======= */
-.container h1 {
-    color: #c7afff; /* tom roxo mais claro e suave */
-    text-shadow: 0 0 2px rgba(199, 175, 255, 0.25);
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-}
-
-/* ======= Tabela ======= */
-table {
-    border-collapse: collapse;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-    width: 100%;
-    margin: 0 auto;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-}
-
-table:hover {
-    transform: scale(1.01);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
-    background: rgba(255, 255, 255, 0.12);
-}
-
-th, td {
-    padding: 1rem;
-    text-align: center;
-}
-
-th {
-    background-color: rgba(138, 43, 226, 0.25);
-    color: #f0e9ff;
-}
-
-tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.04);
-}
-
-tr:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-}
-
-td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* ======= Responsividade ======= */
-@media (max-width: 600px) {
-    nav {
-        flex-direction: column;
-    }
-
-    table {
-        font-size: 0.9rem;
-    }
+#estoque tbody td {
+    border-top: 1px solid #dee2e6;
 }

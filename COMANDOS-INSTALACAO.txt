@@ -1,0 +1,131 @@
+# ===============================================
+# COMANDOS INDIVIDUAIS - Projeto Flask no Ubuntu 24.04
+# ===============================================
+# Copie e execute os comandos um por um se preferir
+
+# === 1. ATUALIZAR REPOSITÓRIOS ===
+sudo apt update && sudo apt upgrade -y
+
+# === 2. INSTALAR DEPENDÊNCIAS DO SISTEMA ===
+sudo apt install -y python3 python3-pip python3-venv build-essential libssl-dev libffi-dev python3-dev git nginx supervisor
+
+# === 3. CLONAR REPOSITÓRIO ===
+cd /var/www
+sudo git clone https://github.com/Kauee01/Projeto-Integrador-UNIVESP.git
+sudo chown -R $USER:$USER Projeto-Integrador-UNIVESP
+cd Projeto-Integrador-UNIVESP
+
+# === 4. CRIAR AMBIENTE VIRTUAL ===
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+
+# === 5. INSTALAR DEPENDÊNCIAS PYTHON ===
+pip install -r requirements.txt
+pip install gunicorn
+
+# === 6. CRIAR BANCO DE DADOS ===
+python3 << 'EOF'
+from app import app, db
+
+with app.app_context():
+    db.create_all()
+    print("Banco de dados criado!")
+EOF
+
+# === 7. DESATIVAR DEBUG MODE ===
+sed -i 's/app\.run(debug=True)/app.run(debug=False)/g' app.py
+
+# === 8. CRIAR ARQUIVO DE CONFIGURAÇÃO DO SUPERVISOR ===
+sudo nano /etc/supervisor/conf.d/flask-app.conf
+
+# Cole este conteúdo:
+# [program:flask-app]
+# directory=/var/www/Projeto-Integrador-UNIVESP
+# command=/var/www/Projeto-Integrador-UNIVESP/venv/bin/gunicorn --workers 4 --bind 127.0.0.1:8000 app:app
+# autostart=true
+# autorestart=true
+# stderr_logfile=/var/log/flask-app.err.log
+# stdout_logfile=/var/log/flask-app.out.log
+# user=www-data
+
+# === 9. INICIAR SUPERVISOR ===
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start flask-app
+
+# === 10. CRIAR ARQUIVO DE CONFIGURAÇÃO DO NGINX ===
+sudo nano /etc/nginx/sites-available/flask-app
+
+# Cole este conteúdo:
+# server {
+#     listen 80;
+#     server_name _;
+#
+#     location / {
+#         proxy_pass http://127.0.0.1:8000;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#     }
+#
+#     location /static {
+#         alias /var/www/Projeto-Integrador-UNIVESP/static;
+#         expires 30d;
+#     }
+# }
+
+# === 11. HABILITAR NGINX ===
+sudo rm /etc/nginx/sites-enabled/default
+sudo ln -s /etc/nginx/sites-available/flask-app /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl enable nginx
+
+# === 12. AJUSTAR PERMISSÕES ===
+sudo chown -R www-data:www-data /var/www/Projeto-Integrador-UNIVESP
+sudo chmod -R 755 /var/www/Projeto-Integrador-UNIVESP
+sudo chmod -R 775 /var/www/Projeto-Integrador-UNIVESP/instance
+
+# === 13. CONFIGURAR FIREWALL ===
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw --force enable
+
+# ===============================================
+# MONITORAMENTO E MANUTENÇÃO
+# ===============================================
+
+# Verificar status da aplicação
+sudo supervisorctl status flask-app
+
+# Ver logs da aplicação
+tail -f /var/log/flask-app.out.log
+tail -f /var/log/flask-app.err.log
+
+# Reiniciar aplicação
+sudo supervisorctl restart flask-app
+
+# Verificar status do Nginx
+sudo systemctl status nginx
+
+# Ver logs do Nginx
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+
+# Parar aplicação
+sudo supervisorctl stop flask-app
+
+# Atualizar código do repositório
+cd /var/www/Projeto-Integrador-UNIVESP
+sudo git pull origin master
+sudo supervisorctl restart flask-app
+
+# ===============================================
+# TESTE
+# ===============================================
+
+# Acessar health check
+curl http://localhost/health
+# Ou pela URL: http://seu-ip-da-vm/health

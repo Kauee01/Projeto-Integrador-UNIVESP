@@ -1,45 +1,73 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    listar_vendas.html — Histórico de vendas realizadas.
+
+    Exibe todas as vendas em uma tabela com ID, data, valor total,
+    lista de produtos (itens) e botão de exclusão.
+    As vendas são ordenadas por ID decrescente (mais recentes primeiro).
+    Colunas "Data" e "Produtos" são ocultadas em telas menores para
+    manter a responsividade.
+
+    Variáveis recebidas do backend (routes.py → listar_vendas):
+      - vendas: lista de objetos Venda com relacionamentos:
+        - venda.id, venda.data, venda.valor_total
+        - venda.itens[]: ItemVenda com tipo_produto.nome, quantidade, valor_produtos
+-->
 {% extends 'base.html' %}
 
 {% block title %}Lista de Vendas Realizadas{% endblock %}
 
-{% block content %}
+{% block styles %}
+<!-- CSS específico da página de listagem de vendas -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/listar_vendas.css') }}">
+{% endblock %}
 
-<h2>Historico de Vendas Realizadas</h2>
+{% block content %}
+<!-- Título da página -->
+<h2 class="mb-4">Histórico de Vendas Realizadas</h2>
 
-<table>
-    <thead>
-        <tr>
-            <th>ID da Venda</th>
-            <th>Data</th>
-            <th>Valor Total</th>
-            <th>Produtos</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for venda in vendas %}
-        <tr>
-            <td>{{ venda.id }}</td>
-            <td>{{ venda.data.strftime('%d/%m/%Y %H:%M') }}</td>
-            <td>R$ {{ "%.2f"|format(venda.valor_total) }}</td>
-            <td>
-                <ul>
-                    {% for item in venda.itens %}
-                    <li>{{ item.tipo_produto.nome }} — {{ item.quantidade }} x R$ {{ "%.2f"|format(item.valor_produtos) }}</li>
-                    {% endfor %}
-                </ul>
-            </td>
-            <td>
-                <form action="{{ url_for('excluir_venda', venda_id=venda.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta venda?');">
-                    <button type="submit" class="excluir-btn">Excluir</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
+<!-- Tabela responsiva de vendas -->
+<div class="table-responsive">
+    <table class="table table-hover table-bordered align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <!-- Coluna "Data" oculta em telas < md (768px) -->
+                <th class="d-none d-md-table-cell">Data</th>
+                <th>Valor Total</th>
+                <!-- Coluna "Produtos" oculta em telas < sm (576px) -->
+                <th class="d-none d-sm-table-cell">Produtos</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Itera sobre as vendas (já ordenadas por ID desc no backend) -->
+            {% for venda in vendas %}
+            <tr>
+                <td>{{ venda.id }}</td>
+                <!-- Data formatada: DD/MM/AAAA HH:MM -->
+                <td class="d-none d-md-table-cell">{{ venda.data.strftime('%d/%m/%Y %H:%M') }}</td>
+                <!-- Valor total da venda em negrito -->
+                <td class="fw-bold">R$ {{ "%.2f"|format(venda.valor_total) }}</td>
+                <td class="d-none d-sm-table-cell">
+                    <!-- Lista de itens: produto — quantidade × valor unitário -->
+                    <ul class="list-unstyled mb-0">
+                        {% for item in venda.itens %}
+                        <li>{{ item.tipo_produto.nome }} — {{ item.quantidade }} x R$ {{ "%.2f"|format(item.valor_produtos) }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <!-- Formulário de exclusão com confirmação JavaScript -->
+                    <form action="{{ url_for('excluir_venda', venda_id=venda.id) }}" method="POST"
+                          onsubmit="return confirm('Tem certeza que deseja excluir esta venda?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i><span class="d-none d-sm-inline">Excluir</span>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

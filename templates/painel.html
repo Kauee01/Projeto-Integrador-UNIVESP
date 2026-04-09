@@ -1,50 +1,83 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    painel.html — Painel de Estoque (listagem de produtos).
+
+    Exibe todos os produtos cadastrados em uma tabela com DataTables
+    (plugin jQuery que adiciona busca, ordenação e paginação).
+    Cada produto mostra: nome, preço, unidades vendidas, estoque atual
+    e um botão para editar.
+
+    Variáveis recebidas do backend (routes.py → painel):
+      - produtos: lista de dicts com chaves:
+        { id, tipo, preco, vendido, estoque }
+
+    Dependências externas (carregadas no bloco scripts):
+      - jQuery 3.7.0
+      - DataTables 1.13.6 (plugin + integração Bootstrap 5)
+      - Tradução PT-BR do DataTables (CDN)
+-->
 {% extends 'base.html' %}
 
 {% block title %}Painel de Estoque{% endblock %}
 
-{% block content %}
-<!-- Importações do DataTables e Bootstrap -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
+{% block styles %}
+<!-- DataTables CSS — tema Bootstrap 5 para manter consistência visual -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<!-- CSS específico do painel (glow e divisórias customizadas) -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/painel.css') }}">
+{% endblock %}
 
-<h1>Painel de Estoque</h1>
+{% block content %}
+<!-- Título da página -->
+<h1 class="mb-4">Painel de Estoque</h1>
 
-<table id="estoque" class="display">
-    <thead>
-        <tr>
-            <th>Nome do Produto</th>
-            <th>Preço</th>
-            <th>Vendidos</th>
-            <th>Estoque</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for produto in produtos %}
-        <tr>
-            <td>{{ produto['tipo'] }}</td>
-            <td>R$ {{ "%.2f"|format(produto['preco'] or 0) }}</td>
-            <td>{{ produto['vendido'] or 0 }}</td>
-            <td>{{ produto['estoque'] or 0 }}</td>
-            <td class="acoes">
-                <a href="/editar-tipo-produto/{{ produto['id'] }}" class="btn-editar">Editar</a>
-            </td>               
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- Tabela responsiva de produtos em estoque
+     Classes Bootstrap: table-striped (linhas alternadas), table-hover (destaque ao passar o mouse),
+     table-bordered (bordas), align-middle (alinhamento vertical centralizado) -->
+<div class="table-responsive">
+    <table id="estoque" class="table table-striped table-hover table-bordered align-middle">
+        <thead>
+            <tr>
+                <th>Nome do Produto</th>
+                <th>Preço</th>
+                <th>Vendidos</th>
+                <th>Estoque</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Itera sobre todos os produtos vindos do backend -->
+            {% for produto in produtos %}
+            <tr>
+                <td>{{ produto['tipo'] }}</td>
+                <!-- Formata o preço com 2 casas decimais; usa 0 se null -->
+                <td>R$ {{ "%.2f"|format(produto['preco'] or 0) }}</td>
+                <td>{{ produto['vendido'] or 0 }}</td>
+                <td>{{ produto['estoque'] or 0 }}</td>
+                <td>
+                    <!-- Botão de editar — redireciona para a página de edição do produto -->
+                    <a href="/editar-tipo-produto/{{ produto['id'] }}" class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-pencil-square me-1"></i><span class="d-none d-sm-inline">Editar</span>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
 
-<!-- Ativa o DataTables -->
+{% block scripts %}
+<!-- jQuery (dependência do DataTables) -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- DataTables: core + integração Bootstrap 5 -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<!-- Inicializa o DataTables na tabela #estoque com tradução PT-BR -->
 <script>
     $(document).ready(function () {
         $('#estoque').DataTable({
-            paging: false,
-            info: false,
+            paging: false,   // Sem paginação (todos os produtos visíveis)
+            info: false,     // Sem "Mostrando X de Y registros"
             language: {
                 url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
             }

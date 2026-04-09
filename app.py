@@ -1,30 +1,45 @@
-from flask import Flask
-from flask_migrate import Migrate
-from models import db, Categoria, TipoProduto, Produto, TipoPagamento, Venda, ItemVenda
-from routes import register_routes  # Importando a função que vai registrar as rotas
-from flask_sqlalchemy import SQLAlchemy
-from flask import render_template,jsonify  # Importando a função que irá renderizar as páginas
+"""
+app.py — Ponto de entrada da aplicação Flask.
 
-# Criação da instância Flask
+Responsável por:
+- Criar a instância principal do Flask
+- Configurar o banco de dados SQLite via SQLAlchemy
+- Inicializar o sistema de migrações (Flask-Migrate)
+- Registrar todas as rotas definidas em routes.py
+- Expor o endpoint de health check (/health)
+"""
+
+from flask import Flask, jsonify
+from flask_migrate import Migrate
+from models import db
+from routes import register_routes
+
+# --- Criação da instância Flask ---
 app = Flask(__name__)
+
+# Chave secreta usada para assinar cookies de sessão (session)
 app.secret_key = 'Univesp2025'
 
-# Configurações do banco de dados
+# --- Configuração do banco de dados SQLite ---
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+# Desativa tracking de modificações (economia de memória)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Inicializando o banco de dados
+# --- Inicialização do banco e migrações ---
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# Registrando as rotas
+# --- Registro de todas as rotas da aplicação ---
 register_routes(app)
 
-# Iniciando a aplicação
-if __name__ == '__main__':
-    app.run(debug=True)
 
-#Função de teste de saúde
+# --- Endpoint de health check (verificação de saúde da API) ---
 @app.get("/health")
 def health():
+    """Retorna status 200 para confirmar que a aplicação está rodando."""
     return jsonify({"status": "ok"}), 200
+
+
+# --- Inicialização do servidor de desenvolvimento ---
+if __name__ == '__main__':
+    app.run(debug=True)

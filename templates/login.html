@@ -1,27 +1,70 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!--
+    login.html — Página de login do sistema.
+
+    Formulário de autenticação com campos de usuário e senha.
+    Envia os dados via POST para a rota /auth.
+    Exibe mensagens de erro (credenciais inválidas) e flash messages
+    (ex: "Conta criada com sucesso!" vinda do cadastro).
+
+    Variáveis recebidas do backend (routes.py → login):
+      - erro: mensagem de erro de autenticação (string ou None)
+      - Flash messages: categorias Bootstrap (success, danger, etc.)
+-->
 {% extends 'base.html' %}
 
 {% block title %}Login{% endblock %}
 
-{% block content %}
+{% block styles %}
+<!-- CSS específico da página de Login -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
 
-<div class="login-container">
-    <form action="/auth" method="POST">
-        <h2>Login</h2>
-        <input type="text" name="username" placeholder="Usuário" required />
-        <input type="password" name="senha" placeholder="Senha" required />
-        <button type="submit">Entrar</button>
+{% block content %}
+<!-- Container centralizado: col-md-5 em tablets, col-lg-4 em desktop -->
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <!-- Título da página -->
+                <h2 class="text-center mb-4">Login</h2>
 
-        <div class="link-criar">
-            <a href="/cadastrar-usuario" style="color: lightblue;">Criar uma conta</a>
+                <!-- Mensagem de erro de autenticação (ex: "Usuário ou senha inválidos") -->
+                {% if erro %}
+                <div class="alert alert-danger text-center" role="alert">{{ erro }}</div>
+                {% endif %}
+
+                <!-- Flash messages — exibidas após redirecionamentos com flash()
+                     Ex: "Conta criada com sucesso!" (category=success) -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} text-center" role="alert">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <!-- Formulário de login — envia para /auth via POST -->
+                <form action="/auth" method="POST">
+                    <!-- Campo: nome de usuário -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Usuário</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Digite seu usuário" required>
+                    </div>
+                    <!-- Campo: senha -->
+                    <div class="mb-3">
+                        <label for="senha" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="senha" name="senha" placeholder="Digite sua senha" required>
+                    </div>
+                    <!-- Botão de submissão — cor amarela (btn-warning) -->
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Entrar</button>
+                </form>
+
+                <!-- Link para a página de cadastro de nova conta -->
+                <p class="text-center mt-3 mb-0">
+                    <a href="/cadastrar-usuario" class="text-decoration-none text-warning">Criar uma conta</a>
+                </p>
+            </div>
         </div>
-
-        {% if erro %}
-        <p class="erro">{{ erro }}</p>
-        {% endif %}
-    </form>
+    </div>
 </div>
 {% endblock %}
-</html>
